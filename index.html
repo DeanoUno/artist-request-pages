@@ -1,30 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Artist Request Page</title>
-</head>
-<body>
-  <div id="app">
-    <h1>Loading...</h1>
-  </div>
+<script>
+  const sheetId = "1BFPoJA-h679UsgzDUwH7TuIF5vFMl7kYDXOILY2_G2U";
+  const configUrl = `https://opensheet.elk.sh/${sheetId}/Artist%20Map`;
 
-  <script>
-    const sheetId = "1BFp0JA-h679UsgzDUwH7TuiLFsvFM17kYDX0ILY2_G2U"; // your actual config sheet ID
-    const configUrl = `https://opensheet.elk.sh/${sheetId}/Artist%20Map`;
+  // Get ?artist=xyz from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const artistId = urlParams.get('artist') || "default";
 
-    // Get ?artist=xyz from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const artistId = urlParams.get('artist') || "dmvmar"; // fallback to default
-
-    async function loadArtistData() {
+  async function loadArtistData() {
+    try {
       const res = await fetch(configUrl);
       const data = await res.json();
 
-      const artist = data.find(row => row.st_id === artistId);
+      console.log("Fetched artist data:", data);
+
+      const artist = data.find(row => row.artist_id === artistId);
       if (!artist) {
-        document.getElementById('app').innerHTML = `<p>Artist not found.</p>`;
+        console.error("Artist not found:", artistId);
+        document.getElementById('app').innerHTML = `<p>Artist "${artistId}" not found.</p>`;
         return;
       }
 
@@ -35,7 +27,7 @@
           <input name="name" placeholder="Your Name" />
           <input name="song" placeholder="Song Title" />
           <input name="note" placeholder="Message (Optional)" />
-          <input type="hidden" name="artistId" value="${artist.st_id}" />
+          <input type="hidden" name="artistId" value="${artist.artist_id}" />
           <button type="submit">Request</button>
         </form>
         <div id="thankYou" style="display:none;">${artist.thank_you_message}</div>
@@ -46,18 +38,25 @@
         e.preventDefault();
         const formData = Object.fromEntries(new FormData(this).entries());
 
-        await fetch("https://script.google.com/macros/s/AKfycbx7dk18igyE7QS2cScishwufWwPtBHV-mZ1rR4IKHZJePGcBWae9DgfY8S5Lhk8mCbS/exec", {
-          method: "POST",
-          body: JSON.stringify(formData),
-          headers: { "Content-Type": "application/json" }
-        });
+        try {
+          await fetch(artist.songs_endpoint, {
+            method: "POST",
+            body: JSON.stringify(formData),
+            headers: { "Content-Type": "application/json" }
+          });
 
-        this.style.display = "none";
-        document.getElementById("thankYou").style.display = "block";
+          this.style.display = "none";
+          document.getElementById("thankYou").style.display = "block";
+        } catch (error) {
+          console.error("Form submission failed:", error);
+          alert("There was a problem submitting your request.");
+        }
       });
+    } catch (error) {
+      console.error("Error loading artist data:", error);
+      document.getElementById('app').innerHTML = `<p>Error loading artist data.</p>`;
     }
+  }
 
-    loadArtistData();
-  </script>
-</body>
-</html>
+  loadArtistData();
+</script>
