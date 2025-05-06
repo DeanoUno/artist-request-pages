@@ -1,70 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Artist Request Page</title>
+</head>
 <body>
   <div id="app">
     <h1>Loading...</h1>
   </div>
+
   <script>
-    // your script here
+    const sheetId = "1BFPoJA-h679UsgzDUwH7TuIF5vFMl7kYDXOILY2_G2U";
+    const configUrl = `https://opensheet.elk.sh/${sheetId}/Artist%20Map`;
+    const urlParams = new URLSearchParams(window.location.search);
+    const artistId = urlParams.get("artist");
+
+    async function loadArtistData() {
+      try {
+        const res = await fetch(configUrl);
+        const data = await res.json();
+
+        console.log("Fetched artist data:", data);
+
+        const artist = data.find(row => row.artist_id === artistId);
+        if (!artist) {
+          console.error("Artist not found:", artistId);
+          document.getElementById("app").innerHTML = `<p>Artist not found: ${artistId}</p>`;
+          return;
+        }
+
+        document.getElementById("app").innerHTML = `
+          <h1>${artist.artist_name}</h1>
+          <p>${artist.welcome_message}</p>
+          <form id="songRequestForm">
+            <input name="name" placeholder="Your Name" />
+            <input name="song" placeholder="Song Title" />
+            <input name="note" placeholder="Message (Optional)" />
+            <input type="hidden" name="artistId" value="${artist.artist_id}" />
+            <button type="submit">Request</button>
+          </form>
+          <div id="thankYou" style="display:none;">${artist.thank_you_message}</div>
+          <p><a href="${artist.tip_venmo}" target="_blank">Tip via Venmo</a></p>
+        `;
+
+        document.getElementById("songRequestForm").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const formData = Object.fromEntries(new FormData(this).entries());
+
+          try {
+            await fetch(artist.songs_endpoint, {
+              method: "POST",
+              body: JSON.stringify(formData),
+              headers: { "Content-Type": "application/json" }
+            });
+
+            this.style.display = "none";
+            document.getElementById("thankYou").style.display = "block";
+          } catch (error) {
+            console.error("Form submission failed:", error);
+            alert("There was a problem submitting your request.");
+          }
+        });
+      } catch (err) {
+        console.error("Error loading artist data:", err);
+        const app = document.getElementById("app");
+        if (app) app.innerHTML = `<p>Error loading artist data. Check console for details.</p>`;
+      }
+    }
+
+    loadArtistData();
   </script>
 </body>
-script>
-  const sheetId = "1BFPoJA-h679UsgzDUwH7TuIF5vFMl7kYDXOILY2_G2U";
-  const configUrl = `https://opensheet.elk.sh/${sheetId}/Artist%20Map`;
-
-  // Get ?artist=xyz from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const artistId = urlParams.get('artist') || "default";
-
-  async function loadArtistData() {
-    try {
-      const res = await fetch(configUrl);
-      const data = await res.json();
-
-      console.log("Fetched artist data:", data);
-
-      const artist = data.find(row => row.artist_id === artistId);
-      if (!artist) {
-        console.error("Artist not found:", artistId);
-        document.getElementById('app').innerHTML = `<p>Artist "${artistId}" not found.</p>`;
-        return;
-      }
-
-      document.getElementById('app').innerHTML = `
-        <h1>${artist.artist_name}</h1>
-        <p>${artist.welcome_message}</p>
-        <form id="songRequestForm">
-          <input name="name" placeholder="Your Name" />
-          <input name="song" placeholder="Song Title" />
-          <input name="note" placeholder="Message (Optional)" />
-          <input type="hidden" name="artistId" value="${artist.artist_id}" />
-          <button type="submit">Request</button>
-        </form>
-        <div id="thankYou" style="display:none;">${artist.thank_you_message}</div>
-        <p><a href="${artist.tip_venmo}" target="_blank">Tip via Venmo</a></p>
-      `;
-
-      document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const formData = Object.fromEntries(new FormData(this).entries());
-
-        try {
-          await fetch(artist.songs_endpoint, {
-            method: "POST",
-            body: JSON.stringify(formData),
-            headers: { "Content-Type": "application/json" }
-          });
-
-          this.style.display = "none";
-          document.getElementById("thankYou").style.display = "block";
-        } catch (error) {
-          console.error("Form submission failed:", error);
-          alert("There was a problem submitting your request.");
-        }
-      });
-    } catch (error) {
-      console.error("Error loading artist data:", error);
-      document.getElementById('app').innerHTML = `<p>Error loading artist data.</p>`;
-    }
-  }
-
-  loadArtistData();
-</script>
+</html>
