@@ -11,9 +11,12 @@
   </div>
 
   <script>
-    const sheetId = "1BFp0JA-h679UsgzDUwH7TuiLFsvFM17kYDX0ILY2_G2U"; // your actual sheet ID
-    const artistId = "dmvmar"; // change this for each deployment (Deano & Marvilla example)
+    const sheetId = "1BFp0JA-h679UsgzDUwH7TuiLFsvFM17kYDX0ILY2_G2U"; // your actual config sheet ID
     const configUrl = `https://opensheet.elk.sh/${sheetId}/Artist%20Map`;
+
+    // Get ?artist=xyz from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const artistId = urlParams.get('artist') || "dmvmar"; // fallback to default
 
     async function loadArtistData() {
       const res = await fetch(configUrl);
@@ -25,7 +28,6 @@
         return;
       }
 
-      // Build the form
       document.getElementById('app').innerHTML = `
         <h1>${artist.artist_name}</h1>
         <p>${artist.welcome_message}</p>
