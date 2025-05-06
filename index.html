@@ -6,7 +6,56 @@
   <title>Artist Request Page</title>
 </head>
 <body>
-  <h1>Welcome to the Artist Request Page</h1>
-  <p>This is a placeholder index.html for your GitHub + Netlify deployment.</p>
+  <div id="app">
+    <h1>Loading...</h1>
+  </div>
+
+  <script>
+    const sheetId = "1BFp0JA-h679UsgzDUwH7TuiLFsvFM17kYDX0ILY2_G2U"; // your actual sheet ID
+    const artistId = "dmvmar"; // change this for each deployment (Deano & Marvilla example)
+    const configUrl = `https://opensheet.elk.sh/${sheetId}/Artist%20Map`;
+
+    async function loadArtistData() {
+      const res = await fetch(configUrl);
+      const data = await res.json();
+
+      const artist = data.find(row => row.st_id === artistId);
+      if (!artist) {
+        document.getElementById('app').innerHTML = `<p>Artist not found.</p>`;
+        return;
+      }
+
+      // Build the form
+      document.getElementById('app').innerHTML = `
+        <h1>${artist.artist_name}</h1>
+        <p>${artist.welcome_message}</p>
+        <form id="songRequestForm">
+          <input name="name" placeholder="Your Name" />
+          <input name="song" placeholder="Song Title" />
+          <input name="note" placeholder="Message (Optional)" />
+          <input type="hidden" name="artistId" value="${artist.st_id}" />
+          <button type="submit">Request</button>
+        </form>
+        <div id="thankYou" style="display:none;">${artist.thank_you_message}</div>
+        <p><a href="${artist.tip_venmo}" target="_blank">Tip via Venmo</a></p>
+      `;
+
+      document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = Object.fromEntries(new FormData(this).entries());
+
+        await fetch("https://script.google.com/macros/s/AKfycbx7dk18igyE7QS2cScishwufWwPtBHV-mZ1rR4IKHZJePGcBWae9DgfY8S5Lhk8mCbS/exec", {
+          method: "POST",
+          body: JSON.stringify(formData),
+          headers: { "Content-Type": "application/json" }
+        });
+
+        this.style.display = "none";
+        document.getElementById("thankYou").style.display = "block";
+      });
+    }
+
+    loadArtistData();
+  </script>
 </body>
 </html>
