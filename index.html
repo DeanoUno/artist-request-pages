@@ -36,7 +36,7 @@
       margin-top: 1rem;
       margin-bottom: 0.25rem;
     }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 0.75rem;
       border-radius: 8px;
@@ -92,7 +92,9 @@
       <input name="name" id="name">
 
       <label for="song">Song Title</label>
-      <input name="song" id="song" required>
+      <select name="song" id="songSelect">
+        <option value="">Loading songs...</option>
+      </select>
 
       <label for="note">Note for the Artist</label>
       <textarea name="note" id="note" rows="3"></textarea>
@@ -124,7 +126,42 @@
         if (artist.tipLink) {
           document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
         }
+        if (artist.songListSheetId) loadSongList(artist.songListSheetId);
       });
+
+    function loadSongList(sheetId) {
+      const songSheetUrl = `https://opensheet.elk.sh/${sheetId}/Songs`;
+      fetch(songSheetUrl)
+        .then(res => res.json())
+        .then(songs => {
+          const select = document.getElementById('songSelect');
+          select.innerHTML = '';
+          const searchBox = document.createElement('input');
+          searchBox.placeholder = 'Search songs, artist, genre...';
+          searchBox.style.marginBottom = '10px';
+          searchBox.oninput = () => filterSongs(searchBox.value, songs);
+          select.parentElement.insertBefore(searchBox, select);
+          songs.forEach(song => {
+            const option = document.createElement('option');
+            option.value = song.Title;
+            option.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
+            select.appendChild(option);
+          });
+        });
+    }
+
+    function filterSongs(query, songs) {
+      const select = document.getElementById('songSelect');
+      select.innerHTML = '';
+      songs
+        .filter(song => `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query.toLowerCase()))
+        .forEach(song => {
+          const option = document.createElement('option');
+          option.value = song.Title;
+          option.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
+          select.appendChild(option);
+        });
+    }
 
     document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
       e.preventDefault();
