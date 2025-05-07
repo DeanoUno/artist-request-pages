@@ -3,73 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Artist Request Page</title>
+  <title>Request a Song</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f5f9ff;
+      color: #222;
+    }
+    .form-container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .logo img {
+      max-width: 200px;
+    }
+    h1 {
+      text-align: center;
+      color: #0059d1;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      background: #ffc107;
+      color: black;
+      font-weight: bold;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      margin-top: 1.5rem;
+      cursor: pointer;
+    }
+    .thank-you {
+      display: none;
+      text-align: center;
+      color: green;
+      margin-top: 1rem;
+    }
+    .tip-link {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .tip-link a {
+      color: #0059d1;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .footer a {
+      color: #0059d1;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <h1>Loading...</h1>
+  <div class="form-container">
+    <div class="logo">
+      <img id="artistLogo" src="" alt="Artist Logo">
+    </div>
+    <h1 id="artistName">Request a Song</h1>
+    <form id="songRequestForm">
+      <label for="name">Your Name (optional)</label>
+      <input name="name" id="name">
+
+      <label for="song">Song Title</label>
+      <input name="song" id="song" required>
+
+      <label for="note">Note for the Artist</label>
+      <textarea name="note" id="note" rows="3"></textarea>
+
+      <input type="hidden" name="artistId" id="artistId">
+      <button type="submit">Send Request</button>
+    </form>
+    <div class="thank-you" id="thankYou">Thank you for your request!</div>
+    <div class="tip-link" id="tipLink"></div>
+    <div class="footer">
+      Powered by <a href="/partner.html">SanibelSong.com</a>
+    </div>
   </div>
 
   <script>
-    const sheetId = "1BFPoJA-h679UsgzDUwH7TuIF5vFMl7kYDXOILY2_G2U";
-    const configUrl = `https://opensheet.elk.sh/${sheetId}/Artist%20Map`;
-    const urlParams = new URLSearchParams(window.location.search);
-    const artistId = urlParams.get("artist");
+    const params = new URLSearchParams(window.location.search);
+    const artistId = params.get('artist') || 'deano';
+    const configURL = 'https://opensheet.elk.sh/1QRkSpd0Zu2JFYmCFexpJ8Ox3d4hnS1vQSM8S_m3H3YI/config';
 
-    async function loadArtistData() {
-      try {
-        const res = await fetch(configUrl);
-        const data = await res.json();
+    document.getElementById('artistId').value = artistId;
 
-        console.log("Fetched artist data:", data);
-
-        const artist = data.find(row => row.artist_id === artistId);
-        if (!artist) {
-          console.error("Artist not found:", artistId);
-          document.getElementById("app").innerHTML = `<p>Artist not found: ${artistId}</p>`;
-          return;
+    fetch(configURL)
+      .then(res => res.json())
+      .then(data => {
+        const artist = data.find(row => row.artistId === artistId);
+        if (!artist) return;
+        document.getElementById('artistName').textContent = artist.artistName;
+        if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
+        if (artist.tipLink) {
+          document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
         }
+      });
 
-        document.getElementById("app").innerHTML = `
-          <h1>${artist.artist_name}</h1>
-          <p>${artist.welcome_message}</p>
-          <form id="songRequestForm">
-            <input name="name" placeholder="Your Name" />
-            <input name="song" placeholder="Song Title" />
-            <input name="note" placeholder="Message (Optional)" />
-            <input type="hidden" name="artistId" value="${artist.artist_id}" />
-            <button type="submit">Request</button>
-          </form>
-          <div id="thankYou" style="display:none;">${artist.thank_you_message}</div>
-          <p><a href="${artist.tip_venmo}" target="_blank">Tip via Venmo</a></p>
-        `;
+    document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form).entries());
 
-        document.getElementById("songRequestForm").addEventListener("submit", async function (e) {
-          e.preventDefault();
-          const formData = Object.fromEntries(new FormData(this).entries());
+      await fetch("https://script.google.com/macros/s/AKfycbx7dk18igyE7QS2cScishwufWwPtBHV-mZ1rR4IKHZJePGcBWae9DgfY8S5Lhk8mCbS/exec", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
 
-          try {
-            await fetch(artist.songs_endpoint, {
-              method: "POST",
-              body: JSON.stringify(formData),
-              headers: { "Content-Type": "application/json" }
-            });
-
-            this.style.display = "none";
-            document.getElementById("thankYou").style.display = "block";
-          } catch (error) {
-            console.error("Form submission failed:", error);
-            alert("There was a problem submitting your request.");
-          }
-        });
-      } catch (err) {
-        console.error("Error loading artist data:", err);
-        const app = document.getElementById("app");
-        if (app) app.innerHTML = `<p>Error loading artist data. Check console for details.</p>`;
-      }
-    }
-
-    loadArtistData();
+      form.reset();
+      document.getElementById('thankYou').style.display = 'block';
+      setTimeout(() => document.getElementById('thankYou').style.display = 'none', 5000);
+    });
   </script>
 </body>
 </html>
