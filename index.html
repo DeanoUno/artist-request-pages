@@ -149,8 +149,11 @@ if (artist.tip_venmo) tipLinks.push(`<a href="${artist.tip_venmo}" target="_blan
 if (artist.tip_cashapp) tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank">Tip via Cash App 💵</a>`);
 if (artist.tip_bandcamp) tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank">Support on Bandcamp 🎶</a>`);
 
-if (tipLinks.length > 0) {
-  document.getElementById('tipLink').innerHTML = `🤝 Tip ${artist.artistName} via:<br>${tipLinks.join('<br>')}`;
+if (tipLinks.length) {
+  document.getElementById('tipLink').innerHTML =
+    `🤝 Tip ${artist.artistName} via:<br>` + tipLinks.join(' ');
+}
+
 } else if (artist.tipLink) {
   document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
 }
