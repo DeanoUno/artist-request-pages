@@ -65,8 +65,14 @@
       margin-top: 1rem;
     }
     .tip-link a {
+      display: inline-block;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      margin: 0.25rem;
       text-decoration: none;
-      font-weight: bold;
+      color: #333;
     }
     .footer {
       margin-top: 3rem;
@@ -131,11 +137,13 @@
     fetch(configURL)
       .then(res => res.json())
       .then(data => {
+        if (!Array.isArray(data)) return log('Error: config data is not an array');
+
         log('Config data loaded');
         log('Field names: ' + Object.keys(data[0] || {}).join(', '));
         log('Artist IDs in config: ' + data.map(row => `${(row['artist_id'] || '').trim()}`).join(', '));
 
-        const artist = Array.isArray(data) ? data.find(row => (row['artist_id'] || '').trim() === artistId) : null;
+        const artist = data.find(row => (row['artist_id'] || '').trim() === artistId);
         if (!artist) return log(`Artist config not found for: ${artistId}`);
         log('Artist config loaded.');
 
@@ -143,28 +151,16 @@
         if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
 
         const tipLinks = [];
-        if (artist.tip_square) {
-          tipLinks.push(`<a href="${artist.tip_square}" target="_blank" style="background:#28a745;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Square</a>`);
-        }
-        if (artist.tip_paypal) {
-          tipLinks.push(`<a href="${artist.tip_paypal}" target="_blank" style="background:#003087;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">PayPal</a>`);
-        }
-        if (artist.tip_venmo) {
-          tipLinks.push(`<a href="${artist.tip_venmo}" target="_blank" style="background:#3d95ce;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Venmo</a>`);
-        }
-        if (artist.tip_cashapp) {
-          tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank" style="background:#00d632;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">CashApp</a>`);
-        }
-        if (artist.tip_bandcamp) {
-          tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank" style="background:#629aa9;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Bandcamp</a>`);
-        }
+        if (artist.tip_square) tipLinks.push(`<a href="${artist.tip_square}" target="_blank">Square</a>`);
+        if (artist.tip_paypal) tipLinks.push(`<a href="${artist.tip_paypal}" target="_blank">PayPal</a>`);
+        if (artist.tip_venmo) tipLinks.push(`<a href="${artist.tip_venmo}" target="_blank">Venmo</a>`);
+        if (artist.tip_cashapp) tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank">CashApp</a>`);
+        if (artist.tip_bandcamp) tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank">Bandcamp</a>`);
 
         if (tipLinks.length) {
-          document.getElementById('tipLink').innerHTML =
-            `🤝 Tip ${artist.artistName} via:<br>` + tipLinks.join(' ');
+          document.getElementById('tipLink').innerHTML = `🤝 Tip ${artist.artistName} via:<br>${tipLinks.join(' ')}`;
         } else if (artist.tipLink) {
-          document.getElementById('tipLink').innerHTML =
-            `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
+          document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
         }
 
         if (artist.songListSheetId) {
