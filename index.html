@@ -142,9 +142,20 @@
 
         document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
-        if (artist.tipLink) {
-          document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
-        }
+       const tipLinks = [];
+if (artist.tip_square) tipLinks.push(`<a href="${artist.tip_square}" target="_blank">Tip via Square 💳</a>`);
+if (artist.tip_paypal) tipLinks.push(`<a href="${artist.tip_paypal}" target="_blank">Tip via PayPal 💸</a>`);
+if (artist.tip_venmo) tipLinks.push(`<a href="${artist.tip_venmo}" target="_blank">Tip via Venmo 📱</a>`);
+if (artist.tip_cashapp) tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank">Tip via Cash App 💵</a>`);
+if (artist.tip_bandcamp) tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank">Support on Bandcamp 🎶</a>`);
+
+if (tipLinks.length > 0) {
+  document.getElementById('tipLink').innerHTML = `🤝 Tip ${artist.artistName} via:<br>${tipLinks.join('<br>')}`;
+} else if (artist.tipLink) {
+  document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
+}
+
+
         if (artist.songListSheetId) {
           log('Loading songs from sheet: ' + artist.songListSheetId);
           loadSongList(artist.songListSheetId);
