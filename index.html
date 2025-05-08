@@ -134,11 +134,9 @@
       .then(data => {
         log('Config data loaded');
         log('Field names: ' + Object.keys(data[0] || {}).join(', '));
-if (Array.isArray(data)) {
-  log('Artist IDs in config: ' + data.map(row => `'${(row['artist_id'] || '').trim()}'`).join(', '));
-}
-const artist = Array.isArray(data) ? data.find(row => (row['artist_id'] || '').trim() === artistId) : null;
+        log('Artist IDs in config: ' + data.map(row => `${(row['artist_id'] || '').trim()}`).join(', '));
 
+        const artist = Array.isArray(data) ? data.find(row => (row['artist_id'] || '').trim() === artistId) : null;
         if (!artist) return log(`Artist config not found for: ${artistId}`);
         log('Artist config loaded.');
 
