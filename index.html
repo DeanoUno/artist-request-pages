@@ -144,8 +144,8 @@
           select.parentElement.insertBefore(searchBox, select);
           songs.forEach(song => {
             const option = document.createElement('option');
-            option.value = song.Title;
-            option.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
+            option.value = song["Song Title"];
+            option.textContent = `${song["Song Title"]} — ${song.Artist} (${song.Genre})`;
             select.appendChild(option);
           });
         });
@@ -155,11 +155,13 @@
       const select = document.getElementById('songSelect');
       select.innerHTML = '';
       songs
-        .filter(song => `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query.toLowerCase()))
+        .filter(song =>
+          `${song["Song Title"]} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query.toLowerCase())
+        )
         .forEach(song => {
           const option = document.createElement('option');
-          option.value = song.Title;
-          option.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
+          option.value = song["Song Title"];
+          option.textContent = `${song["Song Title"]} — ${song.Artist} (${song.Genre})`;
           select.appendChild(option);
         });
     }
