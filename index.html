@@ -65,7 +65,6 @@
       margin-top: 1rem;
     }
     .tip-link a {
-      color: #0059d1;
       text-decoration: none;
       font-weight: bold;
     }
@@ -124,7 +123,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const artistId = params.get('artist') || 'deano';
-    const configURL = 'https://opensheet.elk.sh/113QUjjcc72tnxFltbh2e2wcNQ896dwOLv2uG2mrYEsY/config';
+    const configURL = 'https://opensheet.elk.sh/113QjVHd7TILyguKXh_3KkMZCJvM7dL9ZHzUmPgfE-1k/config';
 
     document.getElementById('artistId').value = artistId;
     log(`Loading config for artistId: ${artistId}`);
@@ -140,36 +139,33 @@
         if (!artist) return log(`Artist config not found for: ${artistId}`);
         log('Artist config loaded.');
 
-      document.getElementById('artistName').textContent = artist.artistName;
-if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
+        document.getElementById('artistName').textContent = artist.artistName;
+        if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
 
-const tipLinks = [];
+        const tipLinks = [];
+        if (artist.tip_square) {
+          tipLinks.push(`<a href="${artist.tip_square}" target="_blank" style="background:#28a745;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Square</a>`);
+        }
+        if (artist.tip_paypal) {
+          tipLinks.push(`<a href="${artist.tip_paypal}" target="_blank" style="background:#003087;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">PayPal</a>`);
+        }
+        if (artist.tip_venmo) {
+          tipLinks.push(`<a href="${artist.tip_venmo}" target="_blank" style="background:#3d95ce;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Venmo</a>`);
+        }
+        if (artist.tip_cashapp) {
+          tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank" style="background:#00d632;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">CashApp</a>`);
+        }
+        if (artist.tip_bandcamp) {
+          tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank" style="background:#629aa9;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Bandcamp</a>`);
+        }
 
-if (artist.tip_square) {
-  tipLinks.push(`<a href="${artist.tip_square}" target="_blank" style="background:#28a745;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Square</a>`);
-}
-if (artist.tip_paypal) {
-  tipLinks.push(`<a href="${artist.tip_paypal}" target="_blank" style="background:#003087;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">PayPal</a>`);
-}
-if (artist.tip_venmo) {
-  tipLinks.push(`<a href="${artist.tip_venmo}" target="_blank" style="background:#3d95ce;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Venmo</a>`);
-}
-if (artist.tip_cashapp) {
-  tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank" style="background:#00d632;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">CashApp</a>`);
-}
-if (artist.tip_bandcamp) {
-  tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank" style="background:#629aa9;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Bandcamp</a>`);
-}
-
-if (tipLinks.length) {
-  document.getElementById('tipLink').innerHTML =
-    `🤝 Tip ${artist.artistName} via:<br>` + tipLinks.join(' ');
-} else if (artist.tipLink) {
-  document.getElementById('tipLink').innerHTML =
-    `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
-}
-
-
+        if (tipLinks.length) {
+          document.getElementById('tipLink').innerHTML =
+            `🤝 Tip ${artist.artistName} via:<br>` + tipLinks.join(' ');
+        } else if (artist.tipLink) {
+          document.getElementById('tipLink').innerHTML =
+            `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
+        }
 
         if (artist.songListSheetId) {
           log('Loading songs from sheet: ' + artist.songListSheetId);
