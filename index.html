@@ -137,11 +137,10 @@
     fetch(configURL)
       .then(res => res.json())
       .then(data => {
-        if (!Array.isArray(data)) return log('Error: config data is not an array');
-
         log('Config data loaded');
+        if (!Array.isArray(data)) return log('Error: config data is not an array');
         log('Field names: ' + Object.keys(data[0] || {}).join(', '));
-        log('Artist IDs in config: ' + data.map(row => `${(row['artist_id'] || '').trim()}`).join(', '));
+        log('Artist IDs in config: ' + data.map(row => (row['artist_id'] || '').trim()).join(', '));
 
         const artist = data.find(row => (row['artist_id'] || '').trim() === artistId);
         if (!artist) return log(`Artist config not found for: ${artistId}`);
@@ -158,7 +157,7 @@
         if (artist.tip_bandcamp) tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank">Bandcamp</a>`);
 
         if (tipLinks.length) {
-          document.getElementById('tipLink').innerHTML = `🤝 Tip ${artist.artistName} via:<br>${tipLinks.join(' ')}`;
+          document.getElementById('tipLink').innerHTML = `🤝 Tip ${artist.artistName} via: ${tipLinks.join(' ')}`;
         } else if (artist.tipLink) {
           document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
         }
