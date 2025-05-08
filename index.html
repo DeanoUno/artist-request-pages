@@ -111,7 +111,8 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const artistId = params.get('artist') || 'deano';
-    const configURL = 'https://opensheet.elk.sh/1BFPoJA-h679UsgzDUwH7TuIF5vFMl7kYDXOILY2_G2U/config';
+    const configURL = 'https://opensheet.elk.sh/1BFPoJA-h679UsgzDUwH7UlFsVfM17kYDXOlLY2_G2U/config';
+
     document.getElementById('artistId').value = artistId;
 
     fetch(configURL)
@@ -119,12 +120,10 @@
       .then(data => {
         const artist = data.find(row => row.artist_id === artistId);
         if (!artist) return;
-
-        document.getElementById('artistName').textContent = artist.artist_name || 'Request a Song';
+        document.getElementById('artistName').textContent = artist.artist_name;
         if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
-        if (artist.tip_venmo || artist.tip_paypal || artist.tip_square) {
-          const tipUrl = artist.tip_venmo || artist.tip_paypal || artist.tip_square;
-          document.getElementById('tipLink').innerHTML = `<a href="${tipUrl}" target="_blank">Leave a Tip 💛</a>`;
+        if (artist.tipLink) {
+          document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
         }
         if (artist.songListSheetId) loadSongList(artist.songListSheetId);
       });
@@ -137,7 +136,7 @@
           const select = document.getElementById('songSelect');
           select.innerHTML = '';
           const searchBox = document.createElement('input');
-          searchBox.placeholder = 'Search songs, artist, genre...';
+          searchBox.placeholder = 'Search by song title, artist, or genre';
           searchBox.style.marginBottom = '10px';
           searchBox.oninput = () => filterSongs(searchBox.value, songs);
           select.parentElement.insertBefore(searchBox, select);
@@ -154,9 +153,7 @@
       const select = document.getElementById('songSelect');
       select.innerHTML = '';
       songs
-        .filter(song =>
-          `${song["Song Title"]} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query.toLowerCase())
-        )
+        .filter(song => `${song["Song Title"]} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query.toLowerCase()))
         .forEach(song => {
           const option = document.createElement('option');
           option.value = song["Song Title"];
