@@ -150,18 +150,35 @@
         document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
 
-        const tipLinks = [];
-        if (artist.tip_square) tipLinks.push(`<a href="${artist.tip_square}" target="_blank">Square</a>`);
-        if (artist.tip_paypal) tipLinks.push(`<a href="${artist.tip_paypal}" target="_blank">PayPal</a>`);
-        if (artist.tip_venmo) tipLinks.push(`<a href="${artist.tip_venmo}" target="_blank">Venmo</a>`);
-        if (artist.tip_cashapp) tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank">CashApp</a>`);
-        if (artist.tip_bandcamp) tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank">Bandcamp</a>`);
+     const tipButtons = [];
 
-        if (tipLinks.length) {
-          document.getElementById('tipLink').innerHTML = `🤝 Tip ${artist.artistName}: ${tipLinks.join(' ')}`;
-        } else if (artist.tipLink) {
-          document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
-        }
+if (artist.tip_square) {
+  tipButtons.push(`<a class="tip-button" href="${artist.tip_square}" target="_blank">Tip via Square</a>`);
+}
+if (artist.tip_paypal) {
+  tipButtons.push(`<a class="tip-button" href="${artist.tip_paypal}" target="_blank">Tip via PayPal</a>`);
+}
+if (artist.tip_venmo) {
+  const venmoUser = artist.tip_venmo.replace(/^https:\/\/venmo\.com\/u\//, '').replace(/^@/, '');
+  const venmoURL = `https://venmo.com/u/${venmoUser}`;
+  tipButtons.push(`<a class="tip-button" href="${venmoURL}" target="_blank">Tip via Venmo</a>`);
+}
+if (artist.tip_cashapp) {
+  const cashTag = artist.tip_cashapp.replace(/^https:\/\/cash\.app\/\$/, '').replace(/^\$/, '');
+  const cashAppURL = `https://cash.app/$${cashTag}`;
+  tipButtons.push(`<a class="tip-button" href="${cashAppURL}" target="_blank">Tip via CashApp</a>`);
+}
+if (artist.tip_bandcamp) {
+  tipButtons.push(`<a class="tip-button" href="${artist.tip_bandcamp}" target="_blank">Tip via Bandcamp</a>`);
+}
+
+if (tipButtons.length) {
+  document.getElementById('tipLink').innerHTML = `
+    <div style="margin-top: 1rem;">
+      <strong>Leave a Tip for ${artist.artistName}:</strong><br/>
+      ${tipButtons.join('')}
+    </div>`;
+}
 
         if (artist.songListSheetId) {
           log('Loading songs from sheet: ' + artist.songListSheetId);
