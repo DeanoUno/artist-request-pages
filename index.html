@@ -113,18 +113,19 @@
     const params = new URLSearchParams(window.location.search);
     const artistId = params.get('artist') || 'deano';
     const configURL = 'https://opensheet.elk.sh/1BFPoJA-h679UsgzDUwH7TuIF5vFMl7kYDXOILY2_G2U/config';
-
     document.getElementById('artistId').value = artistId;
 
     fetch(configURL)
       .then(res => res.json())
       .then(data => {
-        const artist = data.find(row => row.artistId === artistId);
+        const artist = data.find(row => row.artist_id === artistId);
         if (!artist) return;
-        document.getElementById('artistName').textContent = artist.artistName;
+
+        document.getElementById('artistName').textContent = artist.artist_name || 'Request a Song';
         if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
-        if (artist.tipLink) {
-          document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
+        if (artist.tip_venmo || artist.tip_paypal || artist.tip_square) {
+          const tipUrl = artist.tip_venmo || artist.tip_paypal || artist.tip_square;
+          document.getElementById('tipLink').innerHTML = `<a href="${tipUrl}" target="_blank">Leave a Tip 💛</a>`;
         }
         if (artist.songListSheetId) loadSongList(artist.songListSheetId);
       });
