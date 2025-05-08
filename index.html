@@ -79,6 +79,14 @@
       color: #0059d1;
       text-decoration: none;
     }
+    .debug-log {
+      margin-top: 2rem;
+      padding: 1rem;
+      font-size: 0.85rem;
+      background: #f9f9f9;
+      color: #333;
+      border: 1px dashed #ccc;
+    }
   </style>
 </head>
 <body>
@@ -91,6 +99,7 @@
       <label for="name">Your Name (optional)</label>
       <input name="name" id="name">
 
+      <input id="songSearch" placeholder="Search songs, artist, genre...">
       <select name="song" id="songSelect">
         <option value="">Loading songs...</option>
       </select>
@@ -106,58 +115,71 @@
     <div class="footer">
       Powered by <a href="/partner.html">SanibelSong.com</a>
     </div>
+    <div class="debug-log" id="debug"></div>
   </div>
 
   <script>
+    const debug = document.getElementById('debug');
+    const log = (msg) => debug.innerHTML += `<div>${msg}</div>`;
+
     const params = new URLSearchParams(window.location.search);
     const artistId = params.get('artist') || 'deano';
-    const configURL = 'https://opensheet.elk.sh/1BFPoJA-h679UsgzDUwH7UlFsVfM17kYDXOlLY2_G2U/config';
+    const configURL = 'https://opensheet.elk.sh/1BFPoJA-h679UsgzDUwH7TUlF5vFMl7kYDXOlLY2_G2U/config';
 
     document.getElementById('artistId').value = artistId;
+    log(`Loading config for artistId: ${artistId}`);
 
     fetch(configURL)
       .then(res => res.json())
       .then(data => {
         const artist = data.find(row => row.artist_id === artistId);
-        if (!artist) return;
-        document.getElementById('artistName').textContent = artist.artist_name;
+        if (!artist) return log(`Artist config not found for: ${artistId}`);
+        log('Artist config loaded.');
+
+        document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
         if (artist.tipLink) {
           document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
         }
-        if (artist.songListSheetId) loadSongList(artist.songListSheetId);
-      });
+        if (artist.songListSheetId) {
+          log('Loading songs from sheet: ' + artist.songListSheetId);
+          loadSongList(artist.songListSheetId);
+        } else {
+          log('No songListSheetId defined.');
+        }
+      })
+      .catch(err => log('Error loading config: ' + err));
 
     function loadSongList(sheetId) {
-      const songSheetUrl = `https://opensheet.elk.sh/${sheetId}/Songs`;
-      fetch(songSheetUrl)
+      const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
+      fetch(url)
         .then(res => res.json())
         .then(songs => {
           const select = document.getElementById('songSelect');
           select.innerHTML = '';
-          const searchBox = document.createElement('input');
-          searchBox.placeholder = 'Search by song title, artist, or genre';
-          searchBox.style.marginBottom = '10px';
+          const searchBox = document.getElementById('songSearch');
+
           searchBox.oninput = () => filterSongs(searchBox.value, songs);
-          select.parentElement.insertBefore(searchBox, select);
           songs.forEach(song => {
             const option = document.createElement('option');
-            option.value = song["Song Title"];
-            option.textContent = `${song["Song Title"]} — ${song.Artist} (${song.Genre})`;
+            option.value = song.Title;
+            option.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
             select.appendChild(option);
           });
-        });
+          log(`Loaded ${songs.length} songs.`);
+        })
+        .catch(err => log('Error loading songs: ' + err));
     }
 
     function filterSongs(query, songs) {
       const select = document.getElementById('songSelect');
       select.innerHTML = '';
       songs
-        .filter(song => `${song["Song Title"]} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query.toLowerCase()))
+        .filter(song => `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query.toLowerCase()))
         .forEach(song => {
           const option = document.createElement('option');
-          option.value = song["Song Title"];
-          option.textContent = `${song["Song Title"]} — ${song.Artist} (${song.Genre})`;
+          option.value = song.Title;
+          option.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
           select.appendChild(option);
         });
     }
