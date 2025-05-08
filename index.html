@@ -132,7 +132,9 @@
     fetch(configURL)
       .then(res => res.json())
       .then(data => {
-        const artist = data.find(row => row.artist_id === artistId);
+        log('Config data loaded');
+        log('Field names: ' + Object.keys(data[0] || {}).join(', '));
+        const artist = Array.isArray(data) ? data.find(row => (row['artist_id'] || '').trim() === artistId) : null;
         if (!artist) return log(`Artist config not found for: ${artistId}`);
         log('Artist config loaded.');
 
@@ -154,10 +156,7 @@
       const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
       fetch(url)
         .then(res => res.json())
-       .then(songs => {
-  log('Song list JSON:');
-  log(JSON.stringify(songs.slice(0, 3), null, 2)); // Just show first 3
-
+        .then(songs => {
           const select = document.getElementById('songSelect');
           select.innerHTML = '';
           const searchBox = document.getElementById('songSearch');
