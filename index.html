@@ -154,7 +154,10 @@
       const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
       fetch(url)
         .then(res => res.json())
-        .then(songs => {
+       .then(songs => {
+  log('Song list JSON:');
+  log(JSON.stringify(songs.slice(0, 3), null, 2)); // Just show first 3
+
           const select = document.getElementById('songSelect');
           select.innerHTML = '';
           const searchBox = document.getElementById('songSearch');
