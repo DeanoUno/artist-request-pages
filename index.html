@@ -74,6 +74,34 @@
       text-decoration: none;
       color: #333;
     }
+  .tip-logo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.tip-logo-button {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: bold;
+  transition: transform 0.2s;
+}
+.tip-logo-button:hover {
+  transform: scale(1.05);
+}
+.tip-logo-button img {
+  height: 20px;
+  margin-right: 0.5rem;
+}
+
     .footer {
       margin-top: 3rem;
       text-align: center;
@@ -150,35 +178,54 @@
         document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
 
-     const tipButtons = [];
+const tipButtons = [];
 
 if (artist.tip_square) {
-  tipButtons.push(`<a class="tip-button" href="${artist.tip_square}" target="_blank">Tip via Square</a>`);
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${artist.tip_square}" target="_blank">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Square_Inc._logo.svg/32px-Square_Inc._logo.svg.png" alt="Square logo">
+      Square
+    </a>`);
 }
 if (artist.tip_paypal) {
-  tipButtons.push(`<a class="tip-button" href="${artist.tip_paypal}" target="_blank">Tip via PayPal</a>`);
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${artist.tip_paypal}" target="_blank">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/32px-PayPal.svg.png" alt="PayPal logo">
+      PayPal
+    </a>`);
 }
 if (artist.tip_venmo) {
   const venmoUser = artist.tip_venmo.replace(/^https:\/\/venmo\.com\/u\//, '').replace(/^@/, '');
   const venmoURL = `https://venmo.com/u/${venmoUser}`;
-  tipButtons.push(`<a class="tip-button" href="${venmoURL}" target="_blank">Tip via Venmo</a>`);
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${venmoURL}" target="_blank">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Venmo_Logo_2021.svg/32px-Venmo_Logo_2021.svg.png" alt="Venmo logo">
+      Venmo
+    </a>`);
 }
 if (artist.tip_cashapp) {
   const cashTag = artist.tip_cashapp.replace(/^https:\/\/cash\.app\/\$/, '').replace(/^\$/, '');
   const cashAppURL = `https://cash.app/$${cashTag}`;
-  tipButtons.push(`<a class="tip-button" href="${cashAppURL}" target="_blank">Tip via CashApp</a>`);
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${cashAppURL}" target="_blank">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Cash_App_logo.svg/32px-Cash_App_logo.svg.png" alt="Cash App logo">
+      Cash App
+    </a>`);
 }
 if (artist.tip_bandcamp) {
-  tipButtons.push(`<a class="tip-button" href="${artist.tip_bandcamp}" target="_blank">Tip via Bandcamp</a>`);
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${artist.tip_bandcamp}" target="_blank">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Bandcamp-logotype-color.svg/32px-Bandcamp-logotype-color.svg.png" alt="Bandcamp logo">
+      Bandcamp
+    </a>`);
 }
 
 if (tipButtons.length) {
   document.getElementById('tipLink').innerHTML = `
-    <div style="margin-top: 1rem;">
-      <strong>Leave a Tip for ${artist.artistName}:</strong><br/>
-      ${tipButtons.join('')}
-    </div>`;
+    <div><strong>Leave a Tip for ${artist.artistName}:</strong></div>
+    <div class="tip-logo-buttons">${tipButtons.join('')}</div>`;
 }
+
 
         if (artist.songListSheetId) {
           log('Loading songs from sheet: ' + artist.songListSheetId);
