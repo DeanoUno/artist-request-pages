@@ -103,15 +103,12 @@
     <form id="songRequestForm">
       <label for="name">Your Name (optional)</label>
       <input name="name" id="name">
-
       <input id="songSearch" placeholder="Search songs, artist, genre...">
       <select name="song" id="songSelect">
         <option value="">Loading songs...</option>
       </select>
-
       <label for="note">Note for the Artist</label>
       <textarea name="note" id="note" rows="3"></textarea>
-
       <input type="hidden" name="artistId" id="artistId">
       <button type="submit">Send Request</button>
     </form>
@@ -137,8 +134,12 @@
     fetch(configURL)
       .then(res => res.json())
       .then(data => {
+        if (!Array.isArray(data)) {
+          log('Error: config data is not an array');
+          return;
+        }
+
         log('Config data loaded');
-        if (!Array.isArray(data)) return log('Error: config data is not an array');
         log('Field names: ' + Object.keys(data[0] || {}).join(', '));
         log('Artist IDs in config: ' + data.map(row => (row['artist_id'] || '').trim()).join(', '));
 
@@ -157,7 +158,7 @@
         if (artist.tip_bandcamp) tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank">Bandcamp</a>`);
 
         if (tipLinks.length) {
-          document.getElementById('tipLink').innerHTML = `🤝 Tip ${artist.artistName} via: ${tipLinks.join(' ')}`;
+          document.getElementById('tipLink').innerHTML = `🤝 Tip ${artist.artistName}: ${tipLinks.join(' ')}`;
         } else if (artist.tipLink) {
           document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
         }
