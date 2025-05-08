@@ -140,23 +140,35 @@
         if (!artist) return log(`Artist config not found for: ${artistId}`);
         log('Artist config loaded.');
 
-        document.getElementById('artistName').textContent = artist.artistName;
-        if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
-       const tipLinks = [];
-if (artist.tip_square) tipLinks.push(`<a href="${artist.tip_square}" target="_blank">Tip via Square 💳</a>`);
-if (artist.tip_paypal) tipLinks.push(`<a href="${artist.tip_paypal}" target="_blank">Tip via PayPal 💸</a>`);
-if (artist.tip_venmo) tipLinks.push(`<a href="${artist.tip_venmo}" target="_blank">Tip via Venmo 📱</a>`);
-if (artist.tip_cashapp) tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank">Tip via Cash App 💵</a>`);
-if (artist.tip_bandcamp) tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank">Support on Bandcamp 🎶</a>`);
+      document.getElementById('artistName').textContent = artist.artistName;
+if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
+
+const tipLinks = [];
+
+if (artist.tip_square) {
+  tipLinks.push(`<a href="${artist.tip_square}" target="_blank" style="background:#28a745;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Square</a>`);
+}
+if (artist.tip_paypal) {
+  tipLinks.push(`<a href="${artist.tip_paypal}" target="_blank" style="background:#003087;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">PayPal</a>`);
+}
+if (artist.tip_venmo) {
+  tipLinks.push(`<a href="${artist.tip_venmo}" target="_blank" style="background:#3d95ce;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Venmo</a>`);
+}
+if (artist.tip_cashapp) {
+  tipLinks.push(`<a href="${artist.tip_cashapp}" target="_blank" style="background:#00d632;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">CashApp</a>`);
+}
+if (artist.tip_bandcamp) {
+  tipLinks.push(`<a href="${artist.tip_bandcamp}" target="_blank" style="background:#629aa9;color:white;padding:0.5em 1em;border-radius:6px;text-decoration:none;margin:4px;display:inline-block;">Bandcamp</a>`);
+}
 
 if (tipLinks.length) {
   document.getElementById('tipLink').innerHTML =
     `🤝 Tip ${artist.artistName} via:<br>` + tipLinks.join(' ');
+} else if (artist.tipLink) {
+  document.getElementById('tipLink').innerHTML =
+    `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
 }
 
-} else if (artist.tipLink) {
-  document.getElementById('tipLink').innerHTML = `<a href="${artist.tipLink}" target="_blank">Leave a Tip 💛</a>`;
-}
 
 
         if (artist.songListSheetId) {
