@@ -6,7 +6,11 @@
   <title>Request a Song</title>
 <link rel="stylesheet" href="/themes.css">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
-@media (max-width: 480px) {
+
+
+  
+  <style>
+    @media (max-width: 480px) {
   /* General padding */
   body {
     padding: 1rem;
@@ -54,8 +58,9 @@
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
 }
 
-  
-  <style>
+    
+    
+    
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
@@ -157,13 +162,6 @@
   max-height: 200px; /* this will be overridden dynamically */
 }
 
-
-/* Mobile-specific height limit */
-@media (max-width: 480px) {
-  .autocomplete-list {
-    max-height: 120px; /* tighter height for small screens */
-  }
-}
 
 
 .autocomplete-list li {
@@ -417,14 +415,30 @@ searchBox.addEventListener('input', () => {
   const query = searchBox.value.toLowerCase().trim();
   listBox.innerHTML = '';
 
+  const filtered = allSongs.filter(song =>
+    `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
+  );
+
+  filtered.slice(0, 10).forEach(song => {
+    const li = document.createElement('li');
+    li.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
+    li.addEventListener('click', () => {
+      searchBox.value = song.Title;
+      listBox.innerHTML = '';
+    });
+    listBox.appendChild(li);
+  });
+
+  adjustAutocompleteHeight();
+});
 
 searchBox.addEventListener('keydown', (e) => {
   const items = listBox.querySelectorAll('li');
 
-  if (e.key === 'ArrowDown') {
+  if (e.key === 'ArrowDown' && items.length > 0) {
     e.preventDefault();
     selectedIndex = (selectedIndex + 1) % items.length;
-  } else if (e.key === 'ArrowUp') {
+  } else if (e.key === 'ArrowUp' && items.length > 0) {
     e.preventDefault();
     selectedIndex = (selectedIndex - 1 + items.length) % items.length;
   } else if (e.key === 'Enter') {
@@ -440,23 +454,8 @@ searchBox.addEventListener('keydown', (e) => {
   });
 });
 
+
   
-  const filtered = allSongs.filter(song =>
-    `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
-  );
-
-  filtered.slice(0, 10).forEach(song => {
-    const li = document.createElement('li');
-    li.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
-    li.addEventListener('click', () => {
-      searchBox.value = song.Title;
-      listBox.innerHTML = '';
-    });
-    listBox.appendChild(li);
-  });
-
-  adjustAutocompleteHeight(); // ✅ Called in the right place
-});
 
 // ✅ Only one click listener, outside the input event
 document.addEventListener('click', (e) => {
