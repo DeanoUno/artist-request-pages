@@ -307,19 +307,6 @@ if (tipButtons.length) {
 
     let allSongs = [];
 
-function loadSongList(sheetId) {
-  const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
-  fetch(url)
-    .then(res => res.json())
-    .then(songs => {
-      allSongs = songs;
-      log(`Loaded ${songs.length} songs.`);
-    })
-    .catch(err => log('Error loading songs: ' + err));
-}
-
-const searchBox = document.getElementById('songSearch');
-const listBox = document.getElementById('autocompleteList');
 function adjustAutocompleteHeight() {
   const list = document.getElementById('autocompleteList');
   const buffer = 150; // leave space for keyboard or margins
@@ -336,6 +323,23 @@ searchBox.addEventListener('input', () => {
   adjustAutocompleteHeight(); // call each time input changes
 });
 window.addEventListener('resize', adjustAutocompleteHeight); // call when screen size changes
+
+
+    
+function loadSongList(sheetId) {
+  const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
+  fetch(url)
+    .then(res => res.json())
+    .then(songs => {
+      allSongs = songs;
+      log(`Loaded ${songs.length} songs.`);
+    })
+    .catch(err => log('Error loading songs: ' + err));
+}
+
+const searchBox = document.getElementById('songSearch');
+const listBox = document.getElementById('autocompleteList');
+
 
 searchBox.addEventListener('input', () => {
   const query = searchBox.value.toLowerCase();
