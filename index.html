@@ -306,6 +306,10 @@ if (tipButtons.length) {
       .catch(err => log('Error loading config: ' + err));
 
     let allSongs = [];
+
+
+    
+
     
 function loadSongList(sheetId) {
   const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
@@ -321,11 +325,24 @@ function loadSongList(sheetId) {
 const searchBox = document.getElementById('songSearch');
 const listBox = document.getElementById('autocompleteList');
 
+    function adjustAutocompleteHeight() {
+  const list = document.getElementById('autocompleteList');
+  const searchBox = document.getElementById('songSearch');
+  if (!list || !searchBox) return;
+
+  const buffer = 150; // Leave space for keyboard
+  const listTop = list.getBoundingClientRect().top;
+  const maxHeight = window.innerHeight - listTop - buffer;
+
+  list.style.maxHeight = `${Math.max(100, maxHeight)}px`;
+}
+
 
 searchBox.addEventListener('input', () => {
   const query = searchBox.value.toLowerCase();
   listBox.innerHTML = '';
-
+ 
+  
   const filtered = allSongs.filter(song =>
     `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
   );
@@ -339,8 +356,10 @@ searchBox.addEventListener('input', () => {
     });
     listBox.appendChild(li);
   });
-});
 
+
+adjustAutocompleteHeight();  // This line goes inside the input event
+    
 document.addEventListener('click', (e) => {
   if (!searchBox.contains(e.target) && !listBox.contains(e.target)) {
     listBox.innerHTML = '';
@@ -363,6 +382,9 @@ document.addEventListener('click', (e) => {
       document.getElementById('thankYou').style.display = 'block';
       setTimeout(() => document.getElementById('thankYou').style.display = 'none', 5000);
     });
-  </script>
+  
+window.addEventListener('resize', adjustAutocompleteHeight);
+
+</script>
 </body>
 </html>
