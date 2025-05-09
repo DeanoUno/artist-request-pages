@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Request a Song</title>
 <link rel="stylesheet" href="/themes.css">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
 
   
   <style>
@@ -363,10 +364,36 @@ function adjustAutocompleteHeight() {
   list.style.maxHeight = `${Math.max(100, maxHeight)}px`;
 }
 
+let selectedIndex = -1;
+
 searchBox.addEventListener('input', () => {
-  const query = searchBox.value.toLowerCase();
+  const query = searchBox.value.toLowerCase().trim();
   listBox.innerHTML = '';
 
+
+searchBox.addEventListener('keydown', (e) => {
+  const items = listBox.querySelectorAll('li');
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedIndex = (selectedIndex + 1) % items.length;
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+  } else if (e.key === 'Enter') {
+    if (selectedIndex >= 0 && items[selectedIndex]) {
+      e.preventDefault();
+      searchBox.value = items[selectedIndex].textContent.split(' — ')[0];
+      listBox.innerHTML = '';
+    }
+  }
+
+  items.forEach((item, i) => {
+    item.style.background = i === selectedIndex ? '#e0e0e0' : '';
+  });
+});
+
+  
   const filtered = allSongs.filter(song =>
     `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
   );
