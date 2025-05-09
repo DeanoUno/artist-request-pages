@@ -74,7 +74,7 @@
       text-decoration: none;
       color: #333;
     }
-  .tip-logo-buttons {
+.tip-logo-buttons {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -89,20 +89,42 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: white;
-  border: 1px solid #ccc;
+  background: transparent;
+  border: none;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.2s;
-}
-.tip-logo-button:hover {
-  transform: scale(1.1);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .tip-logo-button img {
   height: 36px;
-  width: auto;
   display: block;
+}
+
+/* Platform-specific hover glows */
+.tip-logo-button.square:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4); /* dark gray for Square */
+}
+
+.tip-logo-button.paypal:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.6); /* PayPal blue */
+}
+
+.tip-logo-button.venmo:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 133, 255, 0.6); /* Venmo blue */
+}
+
+.tip-logo-button.cashapp:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 200, 100, 0.6); /* Cash App green */
+}
+
+.tip-logo-button.bandcamp:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 200, 200, 0.5); /* Bandcamp teal */
 }
 
 
