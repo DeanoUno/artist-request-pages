@@ -296,46 +296,46 @@ if (tipButtons.length) {
       })
       .catch(err => log('Error loading config: ' + err));
 
-    function loadSongList(sheetId) {
-      const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
-      fetch(url)
-        .then(res => res.json())
-        .then(songs => {
-          const select = document.getElementById('songSelect');
-          select.innerHTML = '';
-          const searchBox = document.getElementById('songSearch');
+    let allSongs = [];
 
-          searchBox.oninput = () => filterSongs(searchBox.value, songs);
-          songs.forEach(song => {
-            const option = document.createElement('option');
-            option.value = song.Title;
-            option.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
-            select.appendChild(option);
-          });
-          log(`Loaded ${songs.length} songs.`);
-        })
-        .catch(err => log('Error loading songs: ' + err));
-    }
+function loadSongList(sheetId) {
+  const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
+  fetch(url)
+    .then(res => res.json())
+    .then(songs => {
+      allSongs = songs;
+      log(`Loaded ${songs.length} songs.`);
+    })
+    .catch(err => log('Error loading songs: ' + err));
+}
 
-    function filterSongs(query, songs) {
-  const select = document.getElementById('songSelect');
-  select.size = Math.min(songs.length, 8); // show up to 8 at once
-  select.innerHTML = '';
+const searchBox = document.getElementById('songSearch');
+const listBox = document.getElementById('autocompleteList');
 
-  const filtered = songs.filter(song =>
-    `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query.toLowerCase())
+searchBox.addEventListener('input', () => {
+  const query = searchBox.value.toLowerCase();
+  listBox.innerHTML = '';
+
+  const filtered = allSongs.filter(song =>
+    `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
   );
 
-  filtered.forEach(song => {
-    const option = document.createElement('option');
-    option.value = song.Title;
-    option.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
-    select.appendChild(option);
+  filtered.slice(0, 10).forEach(song => {
+    const li = document.createElement('li');
+    li.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
+    li.addEventListener('click', () => {
+      searchBox.value = song.Title;
+      listBox.innerHTML = '';
+    });
+    listBox.appendChild(li);
   });
+});
 
-  // Force the dropdown to appear if results are filtered
-  select.size = filtered.length > 0 ? Math.min(filtered.length, 8) : 1;
-}
+document.addEventListener('click', (e) => {
+  if (!searchBox.contains(e.target) && !listBox.contains(e.target)) {
+    listBox.innerHTML = '';
+  }
+});
 
 
     document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
