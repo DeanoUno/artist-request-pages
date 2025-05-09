@@ -33,11 +33,13 @@
 }
 
 
- h1 {
+ body.theme-deano h1 {
   text-align: center;
   color: #0059d1;
-  font-size: 1.25rem; /* Add or adjust this line */
+  font-size: 1.25rem;
+  font-family: 'Segoe UI', sans-serif;
 }
+
 
 
     label {
@@ -188,6 +190,29 @@
       color: #333;
       border: 1px dashed #ccc;
     }
+ 
+  body.theme-marvilla {
+  background: #fdf9f3;
+  color: #333;
+}
+
+.theme-marvilla h1 {
+  color: #c49a6c;
+  font-family: "Georgia", serif;
+}
+
+.theme-marvilla button {
+  background: #b58e5c;
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+
+.theme-marvilla .tip-logo-button:hover {
+  box-shadow: 0 0 8px rgba(196, 154, 108, 0.6);
+}
+
+  
   </style>
 </head>
 <body>
@@ -243,6 +268,8 @@
         const artist = data.find(row => (row['artist_id'] || '').trim() === artistId);
         if (!artist) return log(`Artist config not found for: ${artistId}`);
         log('Artist config loaded.');
+
+        document.body.classList.add(`theme-${artistId}`);
 
         document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
