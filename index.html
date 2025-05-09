@@ -104,6 +104,14 @@
   width: 100%;
 }
 
+/* Mobile-specific height limit */
+@media (max-width: 480px) {
+  .autocomplete-list {
+    max-height: 120px; /* tighter height for small screens */
+  }
+}
+
+
 .autocomplete-list li {
   padding: 0.5rem;
   cursor: pointer;
