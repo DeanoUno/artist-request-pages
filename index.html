@@ -94,7 +94,6 @@
   list-style: none;
   padding: 0;
   margin: 0.5rem 0 0;
-  max-height: 200px;
   overflow-y: auto;
   background: white;
   border: 1px solid #ccc;
@@ -102,7 +101,9 @@
   position: absolute;
   z-index: 10;
   width: 100%;
+  max-height: 200px; /* this will be overridden dynamically */
 }
+
 
 /* Mobile-specific height limit */
 @media (max-width: 480px) {
@@ -319,6 +320,22 @@ function loadSongList(sheetId) {
 
 const searchBox = document.getElementById('songSearch');
 const listBox = document.getElementById('autocompleteList');
+function adjustAutocompleteHeight() {
+  const list = document.getElementById('autocompleteList');
+  const buffer = 150; // leave space for keyboard or margins
+  const maxListHeight = window.innerHeight - list.getBoundingClientRect().top - buffer;
+
+  if (maxListHeight > 100) {
+    list.style.maxHeight = `${maxListHeight}px`;
+  } else {
+    list.style.maxHeight = '120px'; // fallback minimum
+  }
+}
+
+searchBox.addEventListener('input', () => {
+  adjustAutocompleteHeight(); // call each time input changes
+});
+window.addEventListener('resize', adjustAutocompleteHeight); // call when screen size changes
 
 searchBox.addEventListener('input', () => {
   const query = searchBox.value.toLowerCase();
