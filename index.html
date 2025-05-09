@@ -90,6 +90,28 @@
   gap: 0.5rem;
   margin-top: 1rem;
 }
+.autocomplete-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+}
+
+.autocomplete-list li {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.autocomplete-list li:hover {
+  background: #f0f0f0;
+}
 
 .tip-logo-button {
   display: flex;
@@ -168,10 +190,11 @@
     <form id="songRequestForm">
       <label for="name">Your Name (optional)</label>
       <input name="name" id="name">
-      <input id="songSearch" placeholder="Start typing a title, artist, or genre...">
-      <select name="song" id="songSelect">
-        <option value="">Loading songs...</option>
-      </select>
+     <div style="position: relative;">
+  <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off">
+  <ul id="autocompleteList" class="autocomplete-list"></ul>
+</div>
+
       <label for="note">Note for the Artist</label>
       <textarea name="note" id="note" rows="3"></textarea>
       <input type="hidden" name="artistId" id="artistId">
