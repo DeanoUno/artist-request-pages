@@ -306,25 +306,6 @@ if (tipButtons.length) {
       .catch(err => log('Error loading config: ' + err));
 
     let allSongs = [];
-
-function adjustAutocompleteHeight() {
-  const list = document.getElementById('autocompleteList');
-  const buffer = 150; // leave space for keyboard or margins
-  const maxListHeight = window.innerHeight - list.getBoundingClientRect().top - buffer;
-
-  if (maxListHeight > 100) {
-    list.style.maxHeight = `${maxListHeight}px`;
-  } else {
-    list.style.maxHeight = '120px'; // fallback minimum
-  }
-}
-
-searchBox.addEventListener('input', () => {
-  adjustAutocompleteHeight(); // call each time input changes
-});
-window.addEventListener('resize', adjustAutocompleteHeight); // call when screen size changes
-
-
     
 function loadSongList(sheetId) {
   const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
