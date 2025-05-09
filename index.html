@@ -310,26 +310,40 @@
     document.getElementById('artistId').value = artistId;
     log(`Loading config for artistId: ${artistId}`);
 
+let artist;  // <-- 👈 Add this above fetch(configURL)
+
+
+    
     fetch(configURL)
-      .then(res => res.json())
-      .then(data => {
-        if (!Array.isArray(data)) {
-          log('Error: config data is not an array');
-          return;
-        }
+  .then(res => res.json())
+  .then(data => {
+    if (!Array.isArray(data)) {
+      log('Error: config data is not an array');
+      return;
+    }
 
-        log('Config data loaded');
-        log('Field names: ' + Object.keys(data[0] || {}).join(', '));
-        log('Artist IDs in config: ' + data.map(row => (row['artist_id'] || '').trim()).join(', '));
+     artist = data.find(row => (row['artist_id'] || '').trim() === artistId);
 
-        const artist = data.find(row => (row['artist_id'] || '').trim() === artistId);
-        if (!artist) return log(`Artist config not found for: ${artistId}`);
-        log('Artist config loaded.');
+    if (!artist) return log(`Artist config not found for: ${artistId}`);
 
-        document.body.classList.add(`theme-${artistId}`);
+    // 👇 Check for active status
+    const isActive = (artist.active || '').trim().toUpperCase() === 'TRUE';
+    if (!isActive) {
+      document.body.innerHTML = `
+        <div style="padding: 2rem; font-family: sans-serif; text-align: center;">
+          <h2>This request page is currently inactive.</h2>
+          <p>Please contact the artist or visit <a href="https://sanibelsong.com" target="_blank">SanibelSong.com</a>.</p>
+        </div>`;
+      return;
+    }
 
-        document.getElementById('artistName').textContent = artist.artistName;
-        if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
+    log('Artist config loaded.');
+    document.body.classList.add(`theme-${artistId}`);
+    document.getElementById('artistName').textContent = artist.artistName;
+    if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
+
+    // Render tip buttons, load songs, etc...
+    // (your existing logic stays the same from here)
 
 const tipButtons = [];
 
@@ -495,12 +509,30 @@ document.getElementById('songRequestForm').addEventListener('submit', async func
   const form = e.target;
   const data = Object.fromEntries(new FormData(form).entries());
 
+  // Send to Google Sheet
   await fetch("https://script.google.com/macros/s/AKfycbx7dk18igyE7QS2cScishwufWwPtBHV-mZ1rR4IKHZJePGcBWae9DgfY8S5Lhk8mCbS/exec", {
     method: "POST",
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" }
   });
 
+  // ✅ Trigger Pushover Notification if available
+  if (artist?.pushover_user_key && artist?.pushover_token) {
+    fetch("https://api.pushover.net/1/messages.json", {
+      method: "POST",
+      body: new URLSearchParams({
+        token: artist.pushover_token,
+        user: artist.pushover_user_key,
+        title: "🎶 New Song Request!",
+        message: `From ${data.name || 'Anonymous'}: ${data.song} — ${data.note || ''}`
+      }),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    });
+  }
+
+  // Show thank you message and reset form
   form.reset();
   document.getElementById('thankYou').style.display = 'block';
   setTimeout(() => document.getElementById('thankYou').style.display = 'none', 5000);
