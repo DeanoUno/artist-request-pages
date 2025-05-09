@@ -6,6 +6,53 @@
   <title>Request a Song</title>
 <link rel="stylesheet" href="/themes.css">
 <link rel="icon" href="/favicon.ico" type="image/x-icon">
+@media (max-width: 480px) {
+  /* General padding */
+  body {
+    padding: 1rem;
+  }
+
+  .form-container {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 1.1rem;
+  }
+
+  input, textarea, select, button {
+    font-size: 1rem;
+    min-height: 44px; /* Bigger tap targets */
+  }
+
+  /* Logo scaling */
+  .logo img {
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+  }
+
+  /* Autocomplete list */
+  .autocomplete-list {
+    max-height: 120px;
+    font-size: 0.95rem;
+  }
+
+  /* Sticky send button (optional) */
+  #songRequestForm button {
+    position: sticky;
+    bottom: 10px;
+    z-index: 999;
+  }
+}
+
+/* Smooth active feedback for tip buttons (replaces hover glow on mobile) */
+.tip-logo-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
 
   
   <style>
