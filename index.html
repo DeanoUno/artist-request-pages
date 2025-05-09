@@ -414,12 +414,13 @@ let selectedIndex = -1;
 searchBox.addEventListener('input', () => {
   const query = searchBox.value.toLowerCase().trim();
   listBox.innerHTML = '';
+  selectedIndex = 0; // Auto-select the first item
 
   const filtered = allSongs.filter(song =>
     `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
   );
 
-  filtered.slice(0, 10).forEach(song => {
+  filtered.slice(0, 10).forEach((song, index) => {
     const li = document.createElement('li');
     li.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
     li.addEventListener('click', () => {
@@ -430,15 +431,23 @@ searchBox.addEventListener('input', () => {
   });
 
   adjustAutocompleteHeight();
+
+  // Highlight the first item visually
+  const items = listBox.querySelectorAll('li');
+  items.forEach((item, i) => {
+    item.style.background = i === selectedIndex ? '#e0e0e0' : '';
+  });
 });
+
 
 searchBox.addEventListener('keydown', (e) => {
   const items = listBox.querySelectorAll('li');
+  if (items.length === 0) return;
 
-  if (e.key === 'ArrowDown' && items.length > 0) {
+  if (e.key === 'ArrowDown') {
     e.preventDefault();
     selectedIndex = (selectedIndex + 1) % items.length;
-  } else if (e.key === 'ArrowUp' && items.length > 0) {
+  } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     selectedIndex = (selectedIndex - 1 + items.length) % items.length;
   } else if (e.key === 'Enter') {
@@ -449,9 +458,13 @@ searchBox.addEventListener('keydown', (e) => {
     }
   }
 
+  // Update highlight and scroll visibility
   items.forEach((item, i) => {
     item.style.background = i === selectedIndex ? '#e0e0e0' : '';
   });
+  if (items[selectedIndex]) {
+    items[selectedIndex].scrollIntoView({ block: 'nearest' });
+  }
 });
 
 
