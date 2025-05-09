@@ -307,10 +307,6 @@ if (tipButtons.length) {
 
     let allSongs = [];
 
-
-    
-
-    
 function loadSongList(sheetId) {
   const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
   fetch(url)
@@ -325,24 +321,22 @@ function loadSongList(sheetId) {
 const searchBox = document.getElementById('songSearch');
 const listBox = document.getElementById('autocompleteList');
 
-    function adjustAutocompleteHeight() {
+function adjustAutocompleteHeight() {
   const list = document.getElementById('autocompleteList');
   const searchBox = document.getElementById('songSearch');
   if (!list || !searchBox) return;
 
-  const buffer = 150; // Leave space for keyboard
+  const buffer = 150;
   const listTop = list.getBoundingClientRect().top;
   const maxHeight = window.innerHeight - listTop - buffer;
 
   list.style.maxHeight = `${Math.max(100, maxHeight)}px`;
 }
 
-
 searchBox.addEventListener('input', () => {
   const query = searchBox.value.toLowerCase();
   listBox.innerHTML = '';
- 
-  
+
   const filtered = allSongs.filter(song =>
     `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
   );
@@ -357,32 +351,34 @@ searchBox.addEventListener('input', () => {
     listBox.appendChild(li);
   });
 
+  adjustAutocompleteHeight(); // ✅ Called in the right place
+});
 
-adjustAutocompleteHeight();  // This line goes inside the input event
-    
+// ✅ Only one click listener, outside the input event
 document.addEventListener('click', (e) => {
   if (!searchBox.contains(e.target) && !listBox.contains(e.target)) {
     listBox.innerHTML = '';
   }
 });
 
+// ✅ Form submission remains the same
+document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
 
-    document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const form = e.target;
-      const data = Object.fromEntries(new FormData(form).entries());
+  await fetch("https://script.google.com/macros/s/AKfycbx7dk18igyE7QS2cScishwufWwPtBHV-mZ1rR4IKHZJePGcBWae9DgfY8S5Lhk8mCbS/exec", {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" }
+  });
 
-      await fetch("https://script.google.com/macros/s/AKfycbx7dk18igyE7QS2cScishwufWwPtBHV-mZ1rR4IKHZJePGcBWae9DgfY8S5Lhk8mCbS/exec", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
-      });
+  form.reset();
+  document.getElementById('thankYou').style.display = 'block';
+  setTimeout(() => document.getElementById('thankYou').style.display = 'none', 5000);
+});
 
-      form.reset();
-      document.getElementById('thankYou').style.display = 'block';
-      setTimeout(() => document.getElementById('thankYou').style.display = 'none', 5000);
-    });
-  
+// ✅ Resize handler for mobile responsiveness
 window.addEventListener('resize', adjustAutocompleteHeight);
 
 </script>
