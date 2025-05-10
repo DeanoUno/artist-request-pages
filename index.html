@@ -38,7 +38,15 @@
     height: auto;
   }
 
-  /* Autocomplete list */
+    .autocomplete-list strong {
+     background-color: #fffdc0;
+     border-radius: 4px;
+     padding: 0 2px;
+  }
+
+      
+      
+      /* Autocomplete list */
   .autocomplete-list {
     max-height: 120px;
     font-size: 0.95rem;
@@ -438,25 +446,49 @@ let selectedIndex = -1;
 searchBox.addEventListener('input', () => {
   const query = searchBox.value.toLowerCase().trim();
   listBox.innerHTML = '';
-  selectedIndex = 0; // Auto-select the first item
+  selectedIndex = 0;
 
-  const filtered = allSongs.filter(song =>
-    `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
-  );
+ const filtered = allSongs.filter(song =>
+  `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
+);
 
-  filtered.slice(0, 10).forEach((song, index) => {
-    const li = document.createElement('li');
-    li.textContent = `${song.Title} — ${song.Artist} (${song.Genre})`;
-    li.addEventListener('click', () => {
-      searchBox.value = song.Title;
-      listBox.innerHTML = '';
-    });
-    listBox.appendChild(li);
+// ✅ Clear the list
+listBox.innerHTML = '';
+selectedIndex = 0;
+
+// ✅ Handle no matches
+if (filtered.length === 0) {
+  const li = document.createElement('li');
+  li.textContent = 'No results found';
+  li.style.color = '#888';
+  li.style.fontStyle = 'italic';
+  li.style.cursor = 'default';
+  listBox.appendChild(li);
+  return;
+}
+
+// ✅ Otherwise, render matches with highlight
+filtered.forEach((song, index) => {
+  const li = document.createElement('li');
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  const title = song.Title.replace(regex, '<strong>$1</strong>');
+  const artist = song.Artist.replace(regex, '<strong>$1</strong>');
+  const genre = song.Genre.replace(regex, '<strong>$1</strong>');
+
+  li.innerHTML = `${title} — ${artist} (${genre})`;
+
+  li.addEventListener('click', () => {
+    searchBox.value = song.Title;
+    listBox.innerHTML = '';
   });
+
+  listBox.appendChild(li);
+});
+
 
   adjustAutocompleteHeight();
 
-  // Highlight the first item visually
   const items = listBox.querySelectorAll('li');
   items.forEach((item, i) => {
     item.style.background = i === selectedIndex ? '#e0e0e0' : '';
