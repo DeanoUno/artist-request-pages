@@ -541,14 +541,23 @@ document.getElementById('songRequestForm').addEventListener('submit', async func
   const form = e.target;
   const data = Object.fromEntries(new FormData(form).entries());
 
-  // Send to Google Sheet
-  await fetch("https://script.google.com/macros/s/AKfycbx7dk18igyE7QS2cScishwufWwPtBHV-mZ1rR4IKHZJePGcBWae9DgfY8S5Lhk8mCbS/exec", {
+  // Add IP address to payload
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const ipData = await res.json();
+    data.ip = ipData.ip || '';
+  } catch {
+    data.ip = '';
+  }
+
+  // Send to centralized Google Apps Script
+  await fetch("https://script.google.com/macros/s/AKfycbxIoKwBdu32yOEihI6_rFAoGVf8-_ZJnsrzEHWU1tl2g1p0o9o5k48omFx5eNQtyZH8/exec", {
     method: "POST",
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" }
   });
 
-  // ✅ Trigger Pushover Notification if available
+  // Send Pushover notification if available
   if (artist?.pushover_user_key && artist?.pushover_token) {
     fetch("https://api.pushover.net/1/messages.json", {
       method: "POST",
