@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request a Song</title>
+<link rel="stylesheet" href="/themes.css">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+
+  
+  <style>
+    @media (max-width: 480px) {
+  /* General padding */
+  body {
+    padding: 1rem;
+  }
+
+  .form-container {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 1.1rem;
+  }
+
+  input, textarea, select, button {
+    font-size: 1rem;
+    min-height: 44px; /* Bigger tap targets */
+  }
+
+  /* Logo scaling */
+  .logo img {
+    width: 100%;
+    max-width: 250px;
+    height: auto;
+  }
+
+    .autocomplete-list strong {
+     background-color: #fffdc0;
+     border-radius: 4px;
+     padding: 0 2px;
+  }
+
+      
+      
+      /* Autocomplete list */
+  .autocomplete-list {
+    max-height: 120px;
+    font-size: 0.95rem;
+  }
+
+  /* Sticky send button (optional) */
+  #songRequestForm button {
+  position: static;
+}
+@media (min-width: 768px) {
+  #songRequestForm button {
+    position: sticky;
+    bottom: 10px;
+    z-index: 999;
+  }
+}
+
+/* Smooth active feedback for tip buttons (replaces hover glow on mobile) */
+.tip-logo-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+    
+    
+    
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f5f9ff;
+      color: #222;
+    }
+    .form-container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .logo {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.logo img {
+  max-width: 100%;
+  height: auto;
+  width: 300px;
+}
+
+
+ body.theme-deano h1 {
+  text-align: center;
+  color: #0059d1;
+  font-size: 1.25rem;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      background: #ffc107;
+      color: black;
+      font-weight: bold;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      margin-top: 1.5rem;
+      cursor: pointer;
+    }
+    .thank-you {
+      display: none;
+      text-align: center;
+      color: green;
+      margin-top: 1rem;
+    }
+    .tip-link {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .tip-link a {
+      display: inline-block;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      margin: 0.25rem;
+      text-decoration: none;
+      color: #333;
+    }
+.tip-logo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.autocomplete-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+  max-height: 300px;
+
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+
+
+.autocomplete-list li {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.autocomplete-list li:hover {
+  background: #f0f0f0;
+}
+
+.tip-logo-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none !important;
+  box-shadow: none !important;
+}
+
+.tip-logo-button img {
+  height: 36px;
+  display: block;
+}
+
+/* Platform-specific hover glows */
+.tip-logo-button.square:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4); /* dark gray for Square */
+}
+
+.tip-logo-button.paypal:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.6); /* PayPal blue */
+}
+
+.tip-logo-button.venmo:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 133, 255, 0.6); /* Venmo blue */
+}
+
+.tip-logo-button.cashapp:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 200, 100, 0.6); /* Cash App green */
+}
+
+.tip-logo-button.bandcamp:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 200, 200, 0.5); /* Bandcamp teal */
+}
+
+
+    .footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .footer a {
+      color: #0059d1;
+      text-decoration: none;
+    }
+    .debug-log {
+      margin-top: 2rem;
+      padding: 1rem;
+      font-size: 0.85rem;
+      background: #f9f9f9;
+      color: #333;
+      border: 1px dashed #ccc;
+    }
+ 
+  body.theme-marvilla {
+  background: #fdf9f3;
+  color: #333;
+}
+
+.theme-marvilla h1 {
+  color: #c49a6c;
+  font-family: "Georgia", serif;
+}
+
+.theme-marvilla button {
+  background: #b58e5c;
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+
+.theme-marvilla .tip-logo-button:hover {
+  box-shadow: 0 0 8px rgba(196, 154, 108, 0.6);
+}
+
+  
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <div class="logo">
+      <img id="artistLogo" src="" alt="Artist Logo">
+    </div>
+    <h1 id="artistName">Request a Song</h1>
+    <form id="songRequestForm">
+      <label for="name">Your Name (optional)</label>
+      <input name="name" id="name">
+     <div style="position: relative;">
+  <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off">
+  <ul id="autocompleteList" class="autocomplete-list"></ul>
+</div>
+
+      <label for="note">Note for the Artist</label>
+      <textarea name="note" id="note" rows="3"></textarea>
+      <input type="hidden" name="artistId" id="artistId">
+      <button type="submit">Send Request</button>
+    </form>
+    <div class="thank-you" id="thankYou">Thank you for your request!</div>
+    <div class="tip-link" id="tipLink"></div>
+    <div class="footer">
+      Powered by <a href="/partner.html">SanibelSong.com</a>
+    </div>
+    <div class="debug-log" id="debug"></div>
+  </div>
+
+  <script>
+    const debug = document.getElementById('debug');
+    const log = (msg) => debug.innerHTML += `<div>${msg}</div>`;
+
+    const params = new URLSearchParams(window.location.search);
+    const artistId = params.get('artist') || 'deano';
+    const configURL = 'https://opensheet.elk.sh/113QUjjcc72tnxFltbh2e2wcNQ896dwOLv2uG2mrYEsY/config';
+
+    document.getElementById('artistId').value = artistId;
+    log(`Loading config for artistId: ${artistId}`);
+
+let artist;  // <-- 👈 Add this above fetch(configURL)
+
+
+    
+    fetch(configURL)
+  .then(res => res.json())
+  .then(data => {
+    if (!Array.isArray(data)) {
+      log('Error: config data is not an array');
+      return;
+    }
+
+     artist = data.find(row => (row['artist_id'] || '').trim() === artistId);
+
+    if (!artist) return log(`Artist config not found for: ${artistId}`);
+
+    // 👇 Check for active status
+    const isActive = (artist.active || '').trim().toUpperCase() === 'TRUE';
+    if (!isActive) {
+      document.body.innerHTML = `
+        <div style="padding: 2rem; font-family: sans-serif; text-align: center;">
+          <h2>This request page is currently inactive.</h2>
+          <p>Please contact the artist or visit <a href="https://sanibelsong.com" target="_blank">SanibelSong.com</a>.</p>
+        </div>`;
+      return;
+    }
+
+    log('Artist config loaded.');
+    document.body.classList.add(`theme-${artistId}`);
+    document.getElementById('artistName').textContent = artist.artistName;
+    if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
+
+    // Render tip buttons, load songs, etc...
+    // (your existing logic stays the same from here)
+
+const tipButtons = [];
+
+if (artist.tip_square) {
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${artist.tip_square}" target="_blank">
+      <img src="/assets/Square_LogoLockup_Black.png" alt="Square logo">
+      
+    </a>`);
+}
+if (artist.tip_paypal) {
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${artist.tip_paypal}" target="_blank">
+      <img src="/assets/paypal.png" alt="PayPal logo">
+    
+    </a>`);
+}
+if (artist.tip_venmo) {
+  const venmoUser = artist.tip_venmo.replace(/^https:\/\/venmo\.com\/u\//, '').replace(/^@/, '');
+  const venmoURL = `https://venmo.com/u/${venmoUser}`;
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${venmoURL}" target="_blank">
+      <img src="/assets/venmo.png" alt="Venmo logo">
+      
+    </a>`);
+}
+if (artist.tip_cashapp) {
+  const cashTag = artist.tip_cashapp.replace(/^https:\/\/cash\.app\/\$/, '').replace(/^\$/, '');
+  const cashAppURL = `https://cash.app/$${cashTag}`;
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${cashAppURL}" target="_blank">
+      <img src="/assets/Cash_App-Logo.wine.png" alt="Cash App logo">
+      
+    </a>`);
+}
+if (artist.tip_bandcamp) {
+  tipButtons.push(`
+    <a class="tip-logo-button" href="${artist.tip_bandcamp}" target="_blank">
+      <img src="/assets/bandcamp-logo-png_seeklogo-306586.png" alt="Bandcamp logo">
+      
+    </a>`);
+}
+
+if (tipButtons.length) {
+  document.getElementById('tipLink').innerHTML = `
+    <div><strong>Leave a Tip for ${artist.artistName}:</strong></div>
+    <div class="tip-logo-buttons">${tipButtons.join('')}</div>`;
+}
+
+
+        if (artist.songListSheetId) {
+          log('Loading songs from sheet: ' + artist.songListSheetId);
+          loadSongList(artist.songListSheetId);
+        } else {
+          log('No songListSheetId defined.');
+        }
+      })
+      .catch(err => log('Error loading config: ' + err));
+
+    let allSongs = [];
+
+function loadSongList(sheetId) {
+  const url = `https://opensheet.elk.sh/${sheetId}/Songs`;
+  fetch(url)
+    .then(res => res.json())
+    .then(songs => {
+      allSongs = songs;
+      log(`Loaded ${songs.length} songs.`);
+    })
+    .catch(err => log('Error loading songs: ' + err));
+}
+
+const searchBox = document.getElementById('songSearch');
+const listBox = document.getElementById('autocompleteList');
+
+function adjustAutocompleteHeight() {
+  const list = document.getElementById('autocompleteList');
+  const searchBox = document.getElementById('songSearch');
+  if (!list || !searchBox) return;
+
+  const button = document.querySelector('#songRequestForm button');
+const buffer = (button?.offsetHeight || 60) + 20;
+
+  const listTop = list.getBoundingClientRect().top;
+  const maxHeight = window.innerHeight - listTop - buffer;
+
+  list.style.maxHeight = `${Math.max(100, maxHeight)}px`;
+}
+
+let selectedIndex = -1;
+
+searchBox.addEventListener('input', () => {
+  const query = searchBox.value.toLowerCase().trim();
+  listBox.innerHTML = '';
+  selectedIndex = 0;
+
+ const filtered = allSongs.filter(song =>
+  `${song.Title} ${song.Artist} ${song.Genre}`.toLowerCase().includes(query)
+);
+
+// ✅ Clear the list
+listBox.innerHTML = '';
+selectedIndex = 0;
+
+// ✅ Handle no matches
+if (filtered.length === 0) {
+  const li = document.createElement('li');
+  li.textContent = 'No results found';
+  li.style.color = '#888';
+  li.style.fontStyle = 'italic';
+  li.style.cursor = 'default';
+  listBox.appendChild(li);
+  return;
+}
+
+// ✅ Otherwise, render matches with highlight
+filtered.forEach((song, index) => {
+  const li = document.createElement('li');
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  const title = song.Title.replace(regex, '<strong>$1</strong>');
+  const artist = song.Artist.replace(regex, '<strong>$1</strong>');
+  const genre = song.Genre.replace(regex, '<strong>$1</strong>');
+
+  li.innerHTML = `${title} — ${artist} (${genre})`;
+
+  li.addEventListener('click', () => {
+    searchBox.value = song.Title;
+    listBox.innerHTML = '';
+  });
+
+  listBox.appendChild(li);
+});
+
+
+  adjustAutocompleteHeight();
+
+  const items = listBox.querySelectorAll('li');
+  items.forEach((item, i) => {
+    item.style.background = i === selectedIndex ? '#e0e0e0' : '';
+  });
+});
+
+
+searchBox.addEventListener('keydown', (e) => {
+  const items = listBox.querySelectorAll('li');
+  if (items.length === 0) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedIndex = (selectedIndex + 1) % items.length;
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+  } else if (e.key === 'Enter') {
+    if (selectedIndex >= 0 && items[selectedIndex]) {
+      e.preventDefault();
+      searchBox.value = items[selectedIndex].textContent.split(' — ')[0];
+      listBox.innerHTML = '';
+    }
+  }
+
+  // Update highlight and scroll visibility
+  items.forEach((item, i) => {
+    item.style.background = i === selectedIndex ? '#e0e0e0' : '';
+  });
+  if (items[selectedIndex]) {
+    
+ items[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+  }
+});
+
+
+  
+
+// ✅ Only one click listener, outside the input event
+document.addEventListener('click', (e) => {
+  if (!searchBox.contains(e.target) && !listBox.contains(e.target)) {
+    listBox.innerHTML = '';
+  }
+});
+
+// ✅ Form submission remains the same
+document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  // Add IP address to payload
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const ipData = await res.json();
+    data.ip = ipData.ip || '';
+  } catch {
+    data.ip = '';
+  }
+
+  // Send to centralized Google Apps Script
+  await fetch("https://script.google.com/macros/s/AKfycbxIoKwBdu32yOEihI6_rFAoGVf8-_ZJnsrzEHWU1tl2g1p0o9o5k48omFx5eNQtyZH8/exec", {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" }
+  });
+
+  // Send Pushover notification if available
+  if (artist?.pushover_user_key && artist?.pushover_token) {
+    fetch("https://api.pushover.net/1/messages.json", {
+      method: "POST",
+      body: new URLSearchParams({
+        token: artist.pushover_token,
+        user: artist.pushover_user_key,
+        title: "🎶 New Song Request!",
+        message: `From ${data.name || 'Anonymous'}: ${data.song} — ${data.note || ''}`
+      }),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    });
+  }
+
+  // Show thank you message and reset form
+  form.reset();
+  document.getElementById('thankYou').style.display = 'block';
+  setTimeout(() => document.getElementById('thankYou').style.display = 'none', 5000);
+});
+
+// ✅ Resize handler for mobile responsiveness
+window.addEventListener('resize', adjustAutocompleteHeight);
+
+</script>
+</body>
+</html>
