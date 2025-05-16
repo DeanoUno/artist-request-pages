@@ -166,7 +166,6 @@
           if (!term) return;
           allSongs
             .filter(song => song.toLowerCase().includes(term))
-            .slice(0, 6)
             .forEach(song => {
               const li = document.createElement('li');
               li.innerHTML = song.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
