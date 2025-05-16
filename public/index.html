@@ -27,7 +27,13 @@
     .logo img { max-width: 300px; height: auto; }
     h1 { text-align: center; color: #0059d1; }
     label { display: block; margin: 1rem 0 0.25rem; }
-    input, textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
     button {
       width: 100%; background: #ffc107; color: black; font-weight: bold;
       padding: 0.75rem; border: none; border-radius: 8px; margin-top: 1.5rem;
@@ -95,11 +101,7 @@
     document.getElementById('artistId').value = artistId;
     log(`🔍 Loading config for artistId: ${artistId}`);
 
-<<<<<<< HEAD
     const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
-=======
-    const configURL = 'https://opensheet.elk.sh/113QUjjcc72tnxFltbh2e2wcNQ896dwOLv2uG2mrYEsY/config';
->>>>>>> 59a061b (Fix dynamic sheetId and artist config loading)
     let artist, allSongs = [], userIP = '';
 
     fetch('https://api.ipify.org?format=json')
@@ -109,65 +111,35 @@
     fetch(configURL)
       .then(r => r.json())
       .then(data => {
-<<<<<<< HEAD
         artist = data;
         if (!artist) return log(`❌ No config found for artistId: ${artistId}`);
         if (!artist.active) {
-=======
-        artist = data.find(row => (row.artist_id || '').trim().toLowerCase() === artistId);
-        if (!artist) return log(`❌ No config found for artistId: ${artistId}`);
-        if ((artist.active || '').toUpperCase() !== 'TRUE') {
->>>>>>> 59a061b (Fix dynamic sheetId and artist config loading)
           document.body.innerHTML = `<div style="padding:2rem;text-align:center"><h2>This artist is currently inactive.</h2></div>`;
           return;
         }
 
         log('✅ Artist config loaded');
-<<<<<<< HEAD
         document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) {
           document.getElementById('artistLogo').src = artist.logoUrl;
-=======
-        document.getElementById('artistName').textContent = artist.artist_name;
-        if (artist.logo_url) {
-          document.getElementById('artistLogo').src = artist.logo_url;
->>>>>>> 59a061b (Fix dynamic sheetId and artist config loading)
         }
 
-        // Tip buttons
         const tipMap = [
-<<<<<<< HEAD
           ['tipSquare','Square_LogoLockup_Black.png'],
           ['tipPaypal','paypal.png'],
           ['tipVenmo','venmo.png'],
           ['tipCashapp','Cash_App-Logo.wine.png'],
           ['tipBandcamp','bandcamp-logo-png_seeklogo-306586.png']
-=======
-          ['tip_square','Square_LogoLockup_Black.png'],
-          ['tip_paypal','paypal.png'],
-          ['tip_venmo','venmo.png'],
-          ['tip_cashapp','Cash_App-Logo.wine.png'],
-          ['tip_bandcamp','bandcamp-logo-png_seeklogo-306586.png']
->>>>>>> 59a061b (Fix dynamic sheetId and artist config loading)
         ];
         const tipLink = document.getElementById('tipLink');
         const btns = tipMap
           .filter(([key]) => artist[key])
           .map(([key,img]) => `<a class="tip-logo-button" href="${artist[key]}" target="_blank"><img src="/assets/${img}" alt="${key}"></a>`);
         if (btns.length) {
-<<<<<<< HEAD
           tipLink.innerHTML = `<div><strong>Leave a Tip for ${artist.artistName}:</strong></div><div class="tip-logo-buttons">${btns.join('')}</div>`;
         }
 
-        // Load song list
         const sheetId = artist.songListSheetId;
-=======
-          tipLink.innerHTML = `<div><strong>Leave a Tip for ${artist.artist_name}:</strong></div><div class="tip-logo-buttons">${btns.join('')}</div>`;
-        }
-
-        // Load song list
-        const sheetId = artist.sheet_id;
->>>>>>> 59a061b (Fix dynamic sheetId and artist config loading)
         const songsURL = `https://opensheet.elk.sh/${sheetId}/Songs`;
         log(`🎵 Fetching songs from: ${songsURL}`);
 
@@ -223,11 +195,8 @@
       const data = Object.fromEntries(new FormData(form).entries());
       data.ip = userIP;
       data.artistId = artistId;
-<<<<<<< HEAD
       data.pushoverUserKey = artist.pushoverUserKey;
       data.pushoverToken = artist.pushoverToken;
-=======
->>>>>>> 59a061b (Fix dynamic sheetId and artist config loading)
 
       try {
         const response = await fetch('/.netlify/functions/submit-request', {
