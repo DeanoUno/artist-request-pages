@@ -56,10 +56,6 @@
       display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem;
     }
     .tip-logo-button img { height: 36px; }
-    .song-list-container { margin-top: 2rem; }
-    .song-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; }
-    .song-list li { padding: 0.5rem; border-bottom: 1px solid #eee; }
-    .song-list li:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -84,16 +80,13 @@
     </form>
 
     <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
-    <div class="song-list-container">
-      <h2>Full Song List</h2>
-      <ul id="songList" class="song-list"></ul>
-    </div>
     <div class="tip-link" id="tipLink"></div>
     <div class="debug-log" id="debug"></div>
   </div>
 
   <script>
     const debug = document.getElementById('debug');
+    debug.style.display = 'block';
     const log = msg => debug.innerHTML += `<div>${msg}</div>`;
 
     const params = new URLSearchParams(window.location.search);
@@ -154,9 +147,6 @@
         log(`✅ Songs loaded. Sample: ${JSON.stringify(rows.slice(0, 2))}`);
         allSongs = rows.map(row => row.Title).filter(Boolean);
 
-        const listEl = document.getElementById('songList');
-        listEl.innerHTML = allSongs.map(title => `<li>${title}</li>`).join('');
-
         const searchBox = document.getElementById('songSearch');
         const autoList = document.getElementById('autocompleteList');
 
@@ -210,11 +200,3 @@
         const msg = document.getElementById('thankYouMessage');
         msg.style.display = 'block';
         setTimeout(() => msg.style.display = 'none', 5000);
-      } catch (err) {
-        log(`❌ Submit error: ${err.message}`);
-        console.error(err);
-      }
-    });
-  </script>
-</body>
-</html>
