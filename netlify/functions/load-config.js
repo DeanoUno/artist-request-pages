@@ -40,7 +40,7 @@ exports.handler = async function (event, context) {
       welcomeMessage: artist.welcome_message?.trim(),
       thankYouMessage: artist.thank_you_message?.trim(),
       theme: artist.theme?.trim() || "default",
-      songListSheetId: artist.songListSheetId?.trim(),
+      const sheetId = artist.songListSheetId || artist.sheet_id;
       pushoverUserKey: artist.pushoverUserKey?.trim(),
       pushoverToken: artist.pushover_token?.trim(),
       active: (artist.active || "").trim().toLowerCase() === "true",
