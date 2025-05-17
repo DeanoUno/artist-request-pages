@@ -91,7 +91,7 @@
 
     const params = new URLSearchParams(window.location.search);
     let artistId = params.get('artist_id') || params.get('artist') || 'deano';
-    document.getElementById('artistId').value = artistId;
+    document.getElementById('artistId').value = artist.artistId;
     log(`🔍 Loading config for artistId: ${artistId}`);
 
     const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
