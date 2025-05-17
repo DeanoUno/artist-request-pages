@@ -26,25 +26,28 @@ exports.handler = async function (event, context) {
     }
 
     // Map Google Sheet columns to frontend-friendly keys
-    const mappedArtist = {
-      artistId: artist.artist_id?.trim(),
-      artistName: artist.artistName?.trim(),
-      logoUrl: artist.logoUrl?.trim(),
-      tipLink: artist.tipLink?.trim(),
-      tipSquare: artist.tip_square?.trim(),
-      tipPaypal: artist.tip_paypal?.trim(),
-      tipVenmo: artist.tip_venmo?.trim(),
-      tipCashapp: artist.tip_cashapp?.trim(),
-      tipBandcamp: artist.tip_bandcamp?.trim(),
-      songsEndpoint: artist.songs_endpoint?.trim(),
-      welcomeMessage: artist.welcome_message?.trim(),
-      thankYouMessage: artist.thank_you_message?.trim(),
-      theme: artist.theme?.trim() || "default",
-      const sheetId = artist.songListSheetId || artist.sheet_id;
-      pushoverUserKey: artist.pushoverUserKey?.trim(),
-      pushoverToken: artist.pushover_token?.trim(),
-      active: (artist.active || "").trim().toLowerCase() === "true",
-    };
+   const sheetId = artist.songListSheetId || artist.sheet_id;
+
+const mappedArtist = {
+  artistId: artist.artist_id?.trim(),
+  artistName: artist.artistName?.trim(),
+  logoUrl: artist.logoUrl?.trim(),
+  tipLink: artist.tipLink?.trim(),
+  tipSquare: artist.tip_square?.trim(),
+  tipPaypal: artist.tip_paypal?.trim(),
+  tipVenmo: artist.tip_venmo?.trim(),
+  tipCashapp: artist.tip_cashapp?.trim(),
+  tipBandcamp: artist.tip_bandcamp?.trim(),
+  songsEndpoint: artist.songs_endpoint?.trim(),
+  welcomeMessage: artist.welcome_message?.trim(),
+  thankYouMessage: artist.thank_you_message?.trim(),
+  theme: artist.theme?.trim() || "default",
+  sheetId, // include the derived value here
+  pushoverUserKey: artist.pushoverUserKey?.trim(),
+  pushoverToken: artist.pushover_token?.trim(),
+  active: (artist.active || "").trim().toLowerCase() === "true"
+};
+
 
     return {
       statusCode: 200,
