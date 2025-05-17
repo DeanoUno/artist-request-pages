@@ -85,18 +85,19 @@
   </div>
 
   <script>
-    const debug = document.getElementById('debug');
-    debug.style.display = 'block';
-    const log = msg => debug.innerHTML += `<div>${msg}</div>`;
+// Top of script
+const debug = document.getElementById('debug');
+debug.style.display = 'block';
+const log = msg => debug.innerHTML += `<div>${msg}</div>`;
 
-    const params = new URLSearchParams(window.location.search);
-    let artistId = params.get('artist_id') || params.get('artist') || 'deano';
-    log(`🔍 Loading config for artistId: ${artistId}`);
+const params = new URLSearchParams(window.location.search);
+let artistId = params.get('artist_id') || params.get('artist') || 'deano';
 
-    const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
-     document.getElementById('artistId').value = artist.artistId;
+let artist = {}, allSongs = [], userIP = '';
+window.artistReady = false;
 
-    window.artistReady = false;
+const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
+log(`🔍 Loading config for artistId: ${artistId}`);
 
     fetch('https://api.ipify.org?format=json')
       .then(r => r.json())
