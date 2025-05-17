@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 exports.handler = async function (event, context) {
   try {
     const data = JSON.parse(event.body);
-    const { name, song, note, artistId, ip, pushoverUserKey, pushoverToken } = data;
+    const { name, song, note, artistId, ip, pushoverUserKey, pushover_token } = data;
 
     if (!song || !artistId) {
       return {
@@ -21,7 +21,7 @@ exports.handler = async function (event, context) {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        token: pushoverToken,
+        token: pushover_token,
         user: pushoverUserKey,
         message: msg,
         title: `🎤 Song Request: ${song}`,
