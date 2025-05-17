@@ -89,7 +89,7 @@
     const log = msg => debug.innerHTML += `<div>${msg}</div>`;
 
     const params = new URLSearchParams(window.location.search);
-    const artistId = params.get('artist') || 'deano';
+    const artistId = params.get('artist') || 'deanouno';
     document.getElementById('artistId').value = artistId;
     log(`🔍 Loading config for artistId: ${artistId}`);
 
