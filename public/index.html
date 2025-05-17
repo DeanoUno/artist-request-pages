@@ -213,6 +213,8 @@
       data.artistId = artist.artistId;
       data.pushoverToken = artist.pushoverToken;
       data.pushoverUserKey = artist.pushoverUserKey;
+      console.log("🚀 Form data:", JSON.stringify(data, null, 2));
+
       log(`📦 Sending pushoverToken: ${data.pushoverToken}`);
       log(`📦 Sending pushoverUserKey: ${data.pushoverUserKey}`);
 
