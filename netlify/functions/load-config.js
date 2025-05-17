@@ -42,7 +42,7 @@ exports.handler = async function (event, context) {
       theme: artist.theme?.trim() || "default",
       songListSheetId: sheetId,
       pushoverUserKey: artist.pushoverUserKey?.trim(),
-      pushover_token: artist.pushover_token?.trim(),
+      pushovertoken: artist.pushover_token?.trim(),
       active: (artist.active || "").trim().toLowerCase() === "true"
     };
 
