@@ -76,7 +76,7 @@
       <label for="note">Note for the Artist</label>
       <textarea name="note" id="note" rows="3"></textarea>
       <input type="hidden" name="artistId" id="artistId" />
-      <button id="sendBtn" type="submit">Send Request</button>
+      <button id="sendBtn" type="submit" disabled>Send Request</button>
     </form>
 
     <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
@@ -142,6 +142,8 @@
 
         
         log('✅ Artist config loaded');
+        document.getElementById("sendBtn").disabled = false;
+
         document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) {
           document.getElementById('artistLogo').src = artist.logoUrl;
@@ -209,6 +211,11 @@
 
     document.getElementById('requestForm').addEventListener('submit', async e => {
       e.preventDefault();
+      if (!artist.artistId) {
+  alert("Please wait, the artist information is still loading.");
+  return;
+}
+
       const form = e.target;
       const data = Object.fromEntries(new FormData(form).entries());
       data.ip = userIP;
