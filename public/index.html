@@ -195,6 +195,8 @@
       data.artistId = artistId;
       data.pushoverUserKey = artist.pushoverUserKey;
       data.pushoverToken = artist.pushover_token;
+      log(`📦 Sending pushoverToken: ${data.pushoverToken}`);
+      log(`📦 Sending pushoverUserKey: ${data.pushoverUserKey}`);
 
       try {
         const response = await fetch('/.netlify/functions/submit-request', {
@@ -203,7 +205,7 @@
           body: JSON.stringify(data)
         });
         const result = await response.text();
-        log(`✅ Server : ${result}`);
+        log(`✅ Server response: ${result}`);
 
         form.reset();
         const msg = document.getElementById('thankYouMessage');
