@@ -138,7 +138,9 @@
           pushoverToken: rawArtist.pushover_token?.trim(),
           active: String(rawArtist.active || "").trim().toLowerCase() === "true"
         };
+           artistId = artist.artistId;
 
+        
         log('✅ Artist config loaded');
         document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) {
