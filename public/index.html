@@ -85,186 +85,185 @@
   </div>
 
   <script>
-  const debug = document.getElementById('debug');
-  debug.style.display = 'block';
-  const log = msg => debug.innerHTML += `<div>${msg}</div>`;
+    const debug = document.getElementById('debug');
+    debug.style.display = 'block';
+    const log = msg => debug.innerHTML += `<div>${msg}</div>`;
 
-  const params = new URLSearchParams(window.location.search);
-  let artistId = params.get('artist_id') || params.get('artist') || 'deano';
-  document.getElementById('artistId').value = artistId;
-  log(`🔍 Loading config for artistId: ${artistId}`);
+    const params = new URLSearchParams(window.location.search);
+    let artistId = params.get('artist_id') || params.get('artist') || 'deano';
+    document.getElementById('artistId').value = artistId;
+    log(`🔍 Loading config for artistId: ${artistId}`);
 
-  const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
-  let artist = {}, allSongs = [], userIP = '';
-  window.artistReady = false;
+    const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
+    let artist = {}, allSongs = [], userIP = '';
+    window.artistReady = false;
 
-  fetch('https://api.ipify.org?format=json')
-    .then(r => r.json())
-    .then(d => { userIP = d.ip || ''; });
+    fetch('https://api.ipify.org?format=json')
+      .then(r => r.json())
+      .then(d => { userIP = d.ip || ''; });
 
-  fetch(configURL)
-    .then(async r => {
-      const text = await r.text();
-      try {
-        return JSON.parse(text);
-      } catch (err) {
-        log(`❌ Failed to parse config JSON: ${err.message}`);
-        log(`Response was: ${text}`);
-        throw err;
-      }
-    })
-    .then(data => {
-      const rawArtist = Array.isArray(data) ? data.find(row => (row.artist_id || '').toLowerCase() === artistId) : data;
-      if (!rawArtist) return log(`❌ No config found for artistId: ${artistId}`);
-      if (!rawArtist.active || rawArtist.active.toString().toLowerCase() !== 'true') {
-        document.body.innerHTML = `<div style="padding:2rem;text-align:center"><h2>This artist is currently inactive.</h2></div>`;
+    fetch(configURL)
+      .then(async r => {
+        const text = await r.text();
+        try {
+          return JSON.parse(text);
+        } catch (err) {
+          log(`❌ Failed to parse config JSON: ${err.message}`);
+          log(`Response was: ${text}`);
+          throw err;
+        }
+      })
+      .then(data => {
+        const rawArtist = Array.isArray(data) ? data.find(row => (row.artist_id || '').toLowerCase() === artistId) : data;
+        if (!rawArtist) return log(`❌ No config found for artistId: ${artistId}`);
+        if (!rawArtist.active || rawArtist.active.toString().toLowerCase() !== 'true') {
+          document.body.innerHTML = `<div style="padding:2rem;text-align:center"><h2>This artist is currently inactive.</h2></div>`;
+          return;
+        }
+
+        artist = {
+          artistId: rawArtist.artist_id?.trim(),
+          artistName: rawArtist.artistName?.trim(),
+          logoUrl: rawArtist.logoUrl?.trim(),
+          tipLink: rawArtist.tipLink?.trim(),
+          tipSquare: rawArtist.tipSquare?.trim(),
+          tipPaypal: rawArtist.tipPaypal?.trim(),
+          tipVenmo: rawArtist.tipVenmo?.trim(),
+          tipCashapp: rawArtist.tipCashapp?.trim(),
+          tipBandcamp: rawArtist.tipBandcamp?.trim(),
+          welcomeMessage: rawArtist.welcomeMessage?.trim(),
+          thankYouMessage: rawArtist.thankYouMessage?.trim(),
+          theme: rawArtist.theme?.trim() || "default",
+          songListSheetId: rawArtist.songListSheetId || rawArtist.sheet_id,
+          pushoverUserKey: rawArtist.pushoverUserKey?.trim(),
+          pushoverToken: rawArtist.pushover_token?.trim(),
+          active: String(rawArtist.active || "").trim().toLowerCase() === "true"
+        };
+
+        artistId = artist.artistId;
+        document.getElementById("artistId").value = artist.artistId;
+
+        log('✅ Artist config loaded');
+        document.getElementById("sendBtn").disabled = false;
+        document.getElementById('artistName').textContent = artist.artistName;
+        if (artist.logoUrl) {
+          document.getElementById('artistLogo').src = artist.logoUrl;
+        }
+
+        const tipMap = [
+          ['tipSquare','Square_LogoLockup_Black.png'],
+          ['tipPaypal','paypal.png'],
+          ['tipVenmo','venmo.png'],
+          ['tipCashapp','Cash_App-Logo.wine.png'],
+          ['tipBandcamp','bandcamp-logo-png_seeklogo-306586.png']
+        ];
+        const tipLink = document.getElementById('tipLink');
+        const btns = tipMap
+          .filter(([key]) => artist[key])
+          .map(([key,img]) => `<a class="tip-logo-button" href="${artist[key]}" target="_blank"><img src="/assets/${img}" alt="${key}"></a>`);
+        if (btns.length) {
+          tipLink.innerHTML = `<div><strong>Leave a Tip for ${artist.artistName}:</strong></div><div class="tip-logo-buttons">${btns.join('')}</div>`;
+        }
+
+        const songsURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
+        log(`🎵 Fetching songs from: ${songsURL}`);
+
+        return fetch(songsURL).then(res => {
+          log(`HTTP status: ${res.status}`);
+          if (!res.ok) throw new Error(`Status ${res.status}`);
+          return res.json();
+        });
+      })
+      .then(rows => {
+        if (!rows) return;
+        log(`✅ Songs loaded. Sample: ${JSON.stringify(rows.slice(0, 2))}`);
+        allSongs = rows.map(row => row.Title).filter(Boolean);
+
+        const searchBox = document.getElementById('songSearch');
+        const autoList = document.getElementById('autocompleteList');
+
+        searchBox.addEventListener('input', () => {
+          const term = searchBox.value.trim().toLowerCase();
+          autoList.innerHTML = '';
+          if (!term) return;
+          allSongs
+            .filter(song => song.toLowerCase().includes(term))
+            .forEach(song => {
+              const li = document.createElement('li');
+              li.innerHTML = song.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
+              li.addEventListener('click', () => {
+                searchBox.value = song;
+                autoList.innerHTML = '';
+              });
+              autoList.appendChild(li);
+            });
+        });
+
+        document.addEventListener('click', e => {
+          if (!searchBox.contains(e.target) && !autoList.contains(e.target)) {
+            autoList.innerHTML = '';
+          }
+        });
+
+        window.artistReady = true;
+      })
+      .catch(err => {
+        log(`❌ Load error: ${err.message}`);
+        console.error(err);
+      });
+
+    document.getElementById('requestForm').addEventListener('submit', async e => {
+      e.preventDefault();
+
+      if (!window.artistReady) {
+        alert("Please wait, the artist information is still loading.");
         return;
       }
 
-      artist = {
-        artistId: rawArtist.artist_id?.trim(),
-        artistName: rawArtist.artistName?.trim(),
-        logoUrl: rawArtist.logoUrl?.trim(),
-        tipLink: rawArtist.tipLink?.trim(),
-        tipSquare: rawArtist.tipSquare?.trim(),
-        tipPaypal: rawArtist.tipPaypal?.trim(),
-        tipVenmo: rawArtist.tipVenmo?.trim(),
-        tipCashapp: rawArtist.tipCashapp?.trim(),
-        tipBandcamp: rawArtist.tipBandcamp?.trim(),
-        welcomeMessage: rawArtist.welcomeMessage?.trim(),
-        thankYouMessage: rawArtist.thankYouMessage?.trim(),
-        theme: rawArtist.theme?.trim() || "default",
-        songListSheetId: rawArtist.songListSheetId || rawArtist.sheet_id,
-        pushoverUserKey: rawArtist.pushoverUserKey?.trim(),
-        pushoverToken: rawArtist.pushover_token?.trim(),
-        active: String(rawArtist.active || "").trim().toLowerCase() === "true"
-      };
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form).entries());
 
-      artistId = artist.artistId;
-      document.getElementById("artistId").value = artist.artistId;
-
-      log('✅ Artist config loaded');
-      document.getElementById('artistName').textContent = artist.artistName;
-      if (artist.logoUrl) {
-        document.getElementById('artistLogo').src = artist.logoUrl;
+      if (!data.song || data.song.trim() === "") {
+        data.song = document.getElementById("songSearch").value;
       }
 
-      const tipMap = [
-        ['tipSquare','Square_LogoLockup_Black.png'],
-        ['tipPaypal','paypal.png'],
-        ['tipVenmo','venmo.png'],
-        ['tipCashapp','Cash_App-Logo.wine.png'],
-        ['tipBandcamp','bandcamp-logo-png_seeklogo-306586.png']
-      ];
-      const tipLink = document.getElementById('tipLink');
-      const btns = tipMap
-        .filter(([key]) => artist[key])
-        .map(([key,img]) => `<a class="tip-logo-button" href="${artist[key]}" target="_blank"><img src="/assets/${img}" alt="${key}"></a>`);
-      if (btns.length) {
-        tipLink.innerHTML = `<div><strong>Leave a Tip for ${artist.artistName}:</strong></div><div class="tip-logo-buttons">${btns.join('')}</div>`;
+      artist.artistId = document.getElementById("artistId")?.value || artist.artistId || '';
+      if (!artist.artistId) {
+        alert("Missing artist ID. Please refresh the page.");
+        return;
       }
 
-      const songsURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
-      log(`🎵 Fetching songs from: ${songsURL}`);
+      data.ip = userIP;
+      data.artistId = artist.artistId;
+      data.pushoverToken = artist.pushoverToken;
+      data.pushoverUserKey = artist.pushoverUserKey;
 
-      return fetch(songsURL).then(res => {
-        log(`HTTP status: ${res.status}`);
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-        return res.json();
-      });
-    })
-    .then(rows => {
-      if (!rows) return;
-      log(`✅ Songs loaded. Sample: ${JSON.stringify(rows.slice(0, 2))}`);
-      allSongs = rows.map(row => row.Title).filter(Boolean);
+      console.log("🚀 Form data:", JSON.stringify(data, null, 2));
+      console.log("🎯 artistId used:", artist.artistId);
+      console.log("📦 Final submission data:", data);
 
-      const searchBox = document.getElementById('songSearch');
-      const autoList = document.getElementById('autocompleteList');
+      log(`📦 Sending pushoverToken: ${data.pushoverToken}`);
+      log(`📦 Sending pushoverUserKey: ${data.pushoverUserKey}`);
 
-      searchBox.addEventListener('input', () => {
-        const term = searchBox.value.trim().toLowerCase();
-        autoList.innerHTML = '';
-        if (!term) return;
-        allSongs
-          .filter(song => song.toLowerCase().includes(term))
-          .forEach(song => {
-            const li = document.createElement('li');
-            li.innerHTML = song.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
-            li.addEventListener('click', () => {
-              searchBox.value = song;
-              autoList.innerHTML = '';
-            });
-            autoList.appendChild(li);
-          });
-      });
+      try {
+        const response = await fetch('/.netlify/functions/submit-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
 
-      document.addEventListener('click', e => {
-        if (!searchBox.contains(e.target) && !autoList.contains(e.target)) {
-          autoList.innerHTML = '';
-        }
-      });
+        const result = await response.text();
+        log(`✅ Server response: ${result}`);
 
-      // ✅ Mark artist ready to accept submissions
-      window.artistReady = true;
-    })
-    .catch(err => {
-      log(`❌ Load error: ${err.message}`);
-      console.error(err);
+        form.reset();
+        const msg = document.getElementById('thankYouMessage');
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 5000);
+      } catch (err) {
+        log(`❌ Submit error: ${err.message}`);
+        console.error(err);
+      }
     });
-
-  // ✅ Submit Handler
-  document.getElementById('requestForm').addEventListener('submit', async e => {
-    e.preventDefault();
-
-    if (!window.artistReady) {
-      alert("Please wait, the artist information is still loading.");
-      return;
-    }
-
-    const form = e.target;
-    const data = Object.fromEntries(new FormData(form).entries());
-
-    if (!data.song || data.song.trim() === "") {
-      data.song = document.getElementById("songSearch").value;
-    }
-
-    artist.artistId = document.getElementById("artistId")?.value || artist.artistId || '';
-    if (!artist.artistId) {
-      alert("Missing artist ID. Please refresh the page.");
-      return;
-    }
-
-    data.ip = userIP;
-    data.artistId = artist.artistId;
-    data.pushoverToken = artist.pushoverToken;
-    data.pushoverUserKey = artist.pushoverUserKey;
-
-    console.log("🚀 Form data:", JSON.stringify(data, null, 2));
-    console.log("🎯 artistId used:", artist.artistId);
-    console.log("📦 Final submission data:", data);
-
-    log(`📦 Sending pushoverToken: ${data.pushoverToken}`);
-    log(`📦 Sending pushoverUserKey: ${data.pushoverUserKey}`);
-
-    try {
-      const response = await fetch('/.netlify/functions/submit-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.text();
-      log(`✅ Server response: ${result}`);
-
-      form.reset();
-      const msg = document.getElementById('thankYouMessage');
-      msg.style.display = 'block';
-      setTimeout(() => msg.style.display = 'none', 5000);
-    } catch (err) {
-      log(`❌ Submit error: ${err.message}`);
-      console.error(err);
-    }
-  });
-</script>
+  </script>
 </body>
 </html>
