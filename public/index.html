@@ -212,10 +212,15 @@
 
     document.getElementById('requestForm').addEventListener('submit', async e => {
       e.preventDefault();
-      if (!artist.artistId) {
-  alert("Please wait, the artist information is still loading.");
-  return;
+if (!artist.artistId) {
+  artist.artistId = document.getElementById("artistId")?.value || '';
+  if (!artist.artistId) {
+    alert("Please wait, the artist information is still loading.");
+    return;
+  }
 }
+
+
 
       const form = e.target;
       const data = Object.fromEntries(new FormData(form).entries());
@@ -228,6 +233,8 @@
        song: document.getElementById("songSearch").value,
        formData: Object.fromEntries(new FormData(e.target).entries())
       });
+         console.log("🎯 artistId used:", artist.artistId);
+         console.log("📦 Final submission data:", data);
 
       log(`📦 Sending pushoverToken: ${data.pushoverToken}`);
       log(`📦 Sending pushoverUserKey: ${data.pushoverUserKey}`);
