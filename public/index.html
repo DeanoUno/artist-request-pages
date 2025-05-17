@@ -216,12 +216,12 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
   const form = e.target;
   const data = Object.fromEntries(new FormData(form).entries());
 
-  // ✅ Fix: ensure song gets captured even if autocomplete interferes
+  // ⛑ Fallback to get song if autocomplete breaks FormData
   if (!data.song || data.song.trim() === "") {
     data.song = document.getElementById("songSearch").value;
   }
 
-  // ✅ Fix: ensure artistId is properly resolved
+  // ⛑ Fallback: Get artistId from hidden field if still unset
   if (!artist.artistId) {
     artist.artistId = document.getElementById("artistId")?.value || '';
     if (!artist.artistId) {
@@ -230,11 +230,13 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
     }
   }
 
+  // ✅ Populate the rest
   data.ip = userIP;
   data.artistId = artist.artistId;
   data.pushoverToken = artist.pushoverToken;
   data.pushoverUserKey = artist.pushoverUserKey;
 
+  // 🪵 Logs
   console.log("🚀 Form data:", JSON.stringify(data, null, 2));
   console.log("🎯 artistId used:", artist.artistId);
   console.log("📦 Final submission data:", data);
