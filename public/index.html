@@ -95,7 +95,7 @@
     log(`🔍 Loading config for artistId: ${artistId}`);
 
     const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
-    let artist, allSongs = [], userIP = '';
+    let artist = {}, allSongs = [], userIP = '';
 
     fetch('https://api.ipify.org?format=json')
       .then(r => r.json())
@@ -113,12 +113,31 @@
         }
       })
       .then(data => {
-        artist = Array.isArray(data) ? data.find(row => (row.artist_id || '').toLowerCase() === artistId) : data;
-        if (!artist) return log(`❌ No config found for artistId: ${artistId}`);
-        if (!artist.active || artist.active.toString().toLowerCase() !== 'true') {
+        const rawArtist = Array.isArray(data) ? data.find(row => (row.artist_id || '').toLowerCase() === artistId) : data;
+        if (!rawArtist) return log(`❌ No config found for artistId: ${artistId}`);
+        if (!rawArtist.active || rawArtist.active.toString().toLowerCase() !== 'true') {
           document.body.innerHTML = `<div style="padding:2rem;text-align:center"><h2>This artist is currently inactive.</h2></div>`;
           return;
         }
+
+        artist = {
+          artistId: rawArtist.artist_id?.trim(),
+          artistName: rawArtist.artistName?.trim(),
+          logoUrl: rawArtist.logoUrl?.trim(),
+          tipLink: rawArtist.tipLink?.trim(),
+          tipSquare: rawArtist.tipSquare?.trim(),
+          tipPaypal: rawArtist.tipPaypal?.trim(),
+          tipVenmo: rawArtist.tipVenmo?.trim(),
+          tipCashapp: rawArtist.tipCashapp?.trim(),
+          tipBandcamp: rawArtist.tipBandcamp?.trim(),
+          welcomeMessage: rawArtist.welcomeMessage?.trim(),
+          thankYouMessage: rawArtist.thankYouMessage?.trim(),
+          theme: rawArtist.theme?.trim() || "default",
+          songListSheetId: rawArtist.songListSheetId || rawArtist.sheet_id,
+          pushoverUserKey: rawArtist.pushoverUserKey?.trim(),
+          pushoverToken: rawArtist.pushover_token?.trim(),
+          active: (rawArtist.active || "").trim().toLowerCase() === "true"
+        };
 
         log('✅ Artist config loaded');
         document.getElementById('artistName').textContent = artist.artistName;
@@ -141,8 +160,7 @@
           tipLink.innerHTML = `<div><strong>Leave a Tip for ${artist.artistName}:</strong></div><div class="tip-logo-buttons">${btns.join('')}</div>`;
         }
 
-        const sheetId = artist.songListSheetId || artist.sheet_id;
-        const songsURL = `https://opensheet.elk.sh/${sheetId}/Songs`;
+        const songsURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
         log(`🎵 Fetching songs from: ${songsURL}`);
 
         return fetch(songsURL).then(res => {
@@ -192,10 +210,10 @@
       const form = e.target;
       const data = Object.fromEntries(new FormData(form).entries());
       data.ip = userIP;
-      data.artistId = artistId;
+      data.artistId = artist.artistId;
+      data.pushoverToken = artist.pushoverToken;
       data.pushoverUserKey = artist.pushoverUserKey;
-      data.pushover_token = artist.pushover_token;
-      log(`📦 Sending pushover_token: ${data.pushover_token}`);
+      log(`📦 Sending pushoverToken: ${data.pushoverToken}`);
       log(`📦 Sending pushoverUserKey: ${data.pushoverUserKey}`);
 
       try {
