@@ -136,7 +136,7 @@
           songListSheetId: rawArtist.songListSheetId || rawArtist.sheet_id,
           pushoverUserKey: rawArtist.pushoverUserKey?.trim(),
           pushoverToken: rawArtist.pushover_token?.trim(),
-          active: (rawArtist.active || "").trim().toLowerCase() === "true"
+          active: String(rawArtist.active || "").trim().toLowerCase() === "true"
         };
 
         log('✅ Artist config loaded');
