@@ -143,6 +143,7 @@
         
         log('✅ Artist config loaded');
         document.getElementById("sendBtn").disabled = false;
+        document.getElementById("artistId").value = artist.artistId;
 
         document.getElementById('artistName').textContent = artist.artistName;
         if (artist.logoUrl) {
