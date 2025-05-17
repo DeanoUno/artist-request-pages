@@ -214,6 +214,10 @@
       data.pushoverToken = artist.pushoverToken;
       data.pushoverUserKey = artist.pushoverUserKey;
       console.log("🚀 Form data:", JSON.stringify(data, null, 2));
+      console.log("🚀 SUBMIT DEBUG:", {
+       song: document.getElementById("songSearch").value,
+       formData: Object.fromEntries(new FormData(e.target).entries())
+      });
 
       log(`📦 Sending pushoverToken: ${data.pushoverToken}`);
       log(`📦 Sending pushoverUserKey: ${data.pushoverUserKey}`);
