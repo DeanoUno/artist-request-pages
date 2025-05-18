@@ -152,22 +152,32 @@
       .then(res => res.json())
       .then(rows => {
         log(`✅ Songs loaded. Sample: ${JSON.stringify(rows.slice(0, 2))}`);
-        allSongs = rows.map(row => row.title || row.Title).filter(Boolean);
-
         const searchBox = document.getElementById('songSearch');
         const autoList = document.getElementById('autocompleteList');
+
+        // Store complete song objects
+        allSongs = rows.map(row => ({
+          title: row.title || row.Title || '',
+          artist: row.artist || row.Artist || '',
+          genre: row.genre || row.Genre || ''
+        })).filter(song => song.title);
 
         searchBox.addEventListener('input', () => {
           const term = searchBox.value.trim().toLowerCase();
           autoList.innerHTML = '';
           if (!term) return;
+
           allSongs
-            .filter(song => song.toLowerCase().includes(term))
+            .filter(song =>
+              song.title.toLowerCase().includes(term) ||
+              song.artist.toLowerCase().includes(term) ||
+              song.genre.toLowerCase().includes(term))
             .forEach(song => {
+              const display = `${song.title} — ${song.artist} [${song.genre}]`;
               const li = document.createElement('li');
-              li.innerHTML = song.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
+              li.innerHTML = display.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
               li.addEventListener('click', () => {
-                searchBox.value = song;
+                searchBox.value = song.title;
                 autoList.innerHTML = '';
               });
               autoList.appendChild(li);
