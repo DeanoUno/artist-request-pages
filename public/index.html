@@ -155,6 +155,7 @@
         const searchBox = document.getElementById('songSearch');
         const autoList = document.getElementById('autocompleteList');
 
+        // Store complete song objects
         allSongs = rows.map(row => ({
           title: row.title || row.Title || '',
           artist: row.artist || row.Artist || '',
@@ -166,26 +167,21 @@
           autoList.innerHTML = '';
           if (!term) return;
 
-...
           allSongs
             .filter(song =>
-              song.title &&
-              (song.title.toLowerCase().includes(term) ||
-               song.artist.toLowerCase().includes(term) ||
-               song.genre.toLowerCase().includes(term)))
+              song.title.toLowerCase().includes(term) ||
+              song.artist.toLowerCase().includes(term) ||
+              song.genre.toLowerCase().includes(term))
             .forEach(song => {
+              const display = `${song.title} — ${song.artist} [${song.genre}]`;
               const li = document.createElement('li');
-              li.innerHTML = `
-                <div style="font-weight:bold">${song.title}</div>
-                <div style="font-size:0.85em; color:#555;">${song.artist} • ${song.genre}</div>
-              `.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
+              li.innerHTML = display.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
               li.addEventListener('click', () => {
                 searchBox.value = song.title;
                 autoList.innerHTML = '';
               });
               autoList.appendChild(li);
             });
-...
         });
 
         document.addEventListener('click', e => {
