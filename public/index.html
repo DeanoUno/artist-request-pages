@@ -70,6 +70,26 @@
       border: 1px dashed #ccc;
       padding: 1rem;
     }
+    .autocomplete-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      position: absolute;
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .autocomplete-list li {
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+    .autocomplete-list li:hover {
+      background: #f0f0f0;
+    }
   </style>
 </head>
 <body>
@@ -81,8 +101,11 @@
     <form id="requestForm">
       <label for="name">Your Name (optional)</label>
       <input name="name" id="name" />
-      <label for="song">Song</label>
-      <input name="song" id="song" placeholder="Start typing a title, artist, or genre..." />
+      <div style="position: relative;">
+        <label for="songSearch">Song</label>
+        <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
+        <ul id="autocompleteList" class="autocomplete-list"></ul>
+      </div>
       <label for="note">Note for the Artist</label>
       <textarea name="note" id="note" rows="3"></textarea>
       <input type="hidden" name="artistId" id="artistId" />
@@ -102,7 +125,7 @@
     document.getElementById('artistId').value = artistId;
     const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
 
-    let artist = {}, userIP = '';
+    let artist = {}, allSongs = [], userIP = '';
     window.artistReady = false;
 
     fetch('https://api.ipify.org?format=json')
@@ -122,6 +145,40 @@
         document.getElementById("artistName").textContent = artist.artistName;
         if (artist.logoUrl) document.getElementById("artistLogo").src = artist.logoUrl;
         document.getElementById("sendBtn").disabled = false;
+
+        const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
+        return fetch(songListURL);
+      })
+      .then(res => res.json())
+      .then(rows => {
+        log(`✅ Songs loaded. Sample: ${JSON.stringify(rows.slice(0, 2))}`);
+        allSongs = rows.map(row => row.title || row.Title).filter(Boolean);
+
+        const searchBox = document.getElementById('songSearch');
+        const autoList = document.getElementById('autocompleteList');
+
+        searchBox.addEventListener('input', () => {
+          const term = searchBox.value.trim().toLowerCase();
+          autoList.innerHTML = '';
+          if (!term) return;
+          allSongs
+            .filter(song => song.toLowerCase().includes(term))
+            .forEach(song => {
+              const li = document.createElement('li');
+              li.innerHTML = song.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
+              li.addEventListener('click', () => {
+                searchBox.value = song;
+                autoList.innerHTML = '';
+              });
+              autoList.appendChild(li);
+            });
+        });
+
+        document.addEventListener('click', e => {
+          if (!searchBox.contains(e.target) && !autoList.contains(e.target)) {
+            autoList.innerHTML = '';
+          }
+        });
       })
       .catch(err => {
         log(`❌ Load error: ${err.message}`);
