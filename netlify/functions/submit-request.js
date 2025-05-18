@@ -1,6 +1,5 @@
 // submit-request.js
 const fetch = require('node-fetch');
-const { GoogleSpreadsheet } = require('google-spreadsheet');
 
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
