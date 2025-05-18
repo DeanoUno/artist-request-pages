@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Request a Song</title>
-  <link rel="stylesheet" href="/themes.css" />
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/themes.css">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -21,115 +21,72 @@
       padding: 2rem;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      position: relative;
     }
-    .logo {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .logo img {
-      max-width: 300px;
-      height: auto;
-    }
-    h1 {
-      text-align: center;
-      color: #0059d1;
-    }
-    label {
-      display: block;
-      margin: 1rem 0 0.25rem;
-    }
+    .logo { text-align: center; margin-bottom: 1rem; }
+    .logo img { max-width: 300px; height: auto; }
+    h1 { text-align: center; color: #0059d1; }
+    label { display: block; margin: 1rem 0 0.25rem; }
     input, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      width: 100%; padding: 0.75rem;
+      border-radius: 8px; border: 1px solid #ccc;
       box-sizing: border-box;
     }
     button {
-      width: 100%;
-      background: #ffc107;
-      color: black;
-      font-weight: bold;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 8px;
-      margin-top: 1.5rem;
-      cursor: pointer;
-    }
-    .thank-you {
-      display: none;
-      text-align: center;
-      color: green;
-      margin-top: 1rem;
-    }
-    .debug-log {
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      background: #f9f9f9;
-      border: 1px dashed #ccc;
-      padding: 1rem;
+      width: 100%; background: #ffc107; color: black;
+      font-weight: bold; padding: 0.75rem;
+      border: none; border-radius: 8px;
+      margin-top: 1.5rem; cursor: pointer;
     }
     .autocomplete-list {
-      list-style: none;
-      padding: 0;
-      margin: 0.5rem 0 0;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      position: absolute;
-      width: 100%;
-      max-height: 300px;
-      overflow-y: auto;
+      list-style: none; padding: 0; margin: 0.5rem 0 0;
+      background: white; border: 1px solid #ccc;
+      border-radius: 8px; position: absolute;
+      width: 100%; max-height: 300px; overflow-y: auto;
       z-index: 10;
     }
     .autocomplete-list li {
-      padding: 0.5rem;
-      cursor: pointer;
+      padding: 0.5rem; cursor: pointer;
     }
     .autocomplete-list li:hover {
       background: #f0f0f0;
+    }
+    .thank-you {
+      display: none; text-align: center;
+      color: green; margin-top: 1rem;
+    }
+    .invalid-song-warning {
+      display: none; color: red;
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
   <div class="form-container">
     <div class="logo">
-      <img id="artistLogo" src="" alt="Artist Logo" />
+      <img id="artistLogo" src="" alt="Artist Logo">
     </div>
     <h1 id="artistName">Request a Song</h1>
     <form id="requestForm">
       <label for="name">Your Name (optional)</label>
-      <input name="name" id="name" />
-      <div style="position: relative;">
-        <label for="songSearch">Song</label>
-        <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
-        <ul id="autocompleteList" class="autocomplete-list"></ul>
-      </div>
+      <input name="name" id="name">
+
+      <label for="songSearch">Song</label>
+      <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off">
+      <div id="songWarning" class="invalid-song-warning">Please select a valid song from the list.</div>
+
       <label for="note">Note for the Artist</label>
       <textarea name="note" id="note" rows="3"></textarea>
-      <input type="hidden" name="artistId" id="artistId" />
+      <input type="hidden" name="artistId" id="artistId">
       <button id="sendBtn" type="submit" disabled>Send Request</button>
     </form>
     <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
-    <div class="debug-log" id="debug"></div>
   </div>
 
   <script>
-        // Remove debug log block and console logging
-      const debug = document.getElementById('debug');
-      debug.style.display = 'none';
-      const log = msg => {};
-
-      // Remove thank-you debug element visually if desired
-      // document.querySelector('.debug-log')?.remove();
-
-
     const params = new URLSearchParams(window.location.search);
     let artistId = params.get('artist_id') || params.get('artist') || 'deano';
     document.getElementById('artistId').value = artistId;
     const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
-
     let artist = {}, allSongs = [], userIP = '';
     window.artistReady = false;
 
@@ -140,56 +97,47 @@
     fetch(configURL)
       .then(r => r.json())
       .then(data => {
-        if (!data || !data.artistId) {
-          throw new Error("Invalid artist config");
-        }
+        if (!data || !data.artistId) throw new Error("Invalid artist config");
         artist = data;
         window.artistReady = true;
-        log('✅ Artist config loaded');
         document.getElementById("artistId").value = artist.artistId;
         document.getElementById("artistName").textContent = artist.artistName;
         if (artist.logoUrl) document.getElementById("artistLogo").src = artist.logoUrl;
         document.getElementById("sendBtn").disabled = false;
 
-        const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
-        return fetch(songListURL);
+        return fetch(`https://opensheet.elk.sh/${artist.songListSheetId}/Songs`);
       })
       .then(res => res.json())
       .then(rows => {
-        log(`✅ Songs loaded. Sample: ${JSON.stringify(rows.slice(0, 2))}`);
-        const searchBox = document.getElementById('songSearch');
-        const autoList = document.getElementById('autocompleteList');
-
-        // Store complete song objects
         allSongs = rows.map(row => ({
           title: row.title || row.Title || '',
           artist: row.artist || row.Artist || '',
           genre: row.genre || row.Genre || ''
         })).filter(song => song.title);
 
+        const searchBox = document.getElementById('songSearch');
+        const autoList = document.createElement('ul');
+        autoList.className = 'autocomplete-list';
+        searchBox.parentNode.appendChild(autoList);
+
         searchBox.addEventListener('input', () => {
           const term = searchBox.value.trim().toLowerCase();
           autoList.innerHTML = '';
           if (!term) return;
 
-          allSongs
-            .filter(song =>
-              song.title.toLowerCase().includes(term) ||
-              song.artist.toLowerCase().includes(term) ||
-              song.genre.toLowerCase().includes(term))
-            // inside the song list render loop, replace display assignment and li.innerHTML
-            .forEach(song => {
-              const li = document.createElement('li');
-              li.innerHTML = `
-                <div style="font-weight:bold">${song.title}</div>
-                <div style="font-size:0.85em; color:#555;">${song.artist} • ${song.genre}</div>
-              `.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
-              li.addEventListener('click', () => {
-                searchBox.value = song.title;
-                autoList.innerHTML = '';
-              });
-              autoList.appendChild(li);
+          allSongs.filter(song =>
+            song.title.toLowerCase().includes(term) ||
+            song.artist.toLowerCase().includes(term) ||
+            song.genre.toLowerCase().includes(term)
+          ).forEach(song => {
+            const li = document.createElement('li');
+            li.textContent = `${song.title} — ${song.artist} • ${song.genre}`;
+            li.addEventListener('click', () => {
+              searchBox.value = song.title;
+              autoList.innerHTML = '';
             });
+            autoList.appendChild(li);
+          });
         });
 
         document.addEventListener('click', e => {
@@ -197,10 +145,6 @@
             autoList.innerHTML = '';
           }
         });
-      })
-      .catch(err => {
-        log(`❌ Load error: ${err.message}`);
-        console.error(err);
       });
 
     document.getElementById('requestForm').addEventListener('submit', async e => {
@@ -212,6 +156,17 @@
 
       const form = e.target;
       const data = Object.fromEntries(new FormData(form).entries());
+      const enteredSong = data.song?.trim().toLowerCase();
+      const isValid = allSongs.some(song => song.title.toLowerCase() === enteredSong);
+
+      const warningBox = document.getElementById('songWarning');
+      if (!isValid) {
+        warningBox.style.display = 'block';
+        return;
+      } else {
+        warningBox.style.display = 'none';
+      }
+
       data.ip = userIP;
       data.pushoverToken = artist.pushoverToken;
       data.pushoverUserKey = artist.pushoverUserKey;
@@ -223,14 +178,12 @@
           body: JSON.stringify(data)
         });
 
-        const result = await response.json();
-        log(`✅ Server response: ${JSON.stringify(result)}`);
+        await response.json();
         form.reset();
-        const msg = document.getElementById('thankYouMessage');
-        msg.style.display = 'block';
-        setTimeout(() => msg.style.display = 'none', 5000);
+        document.getElementById('thankYouMessage').style.display = 'block';
+        setTimeout(() => document.getElementById('thankYouMessage').style.display = 'none', 5000);
       } catch (err) {
-        log(`❌ Submit error: ${err.message}`);
+        alert("Error submitting request. Please try again.");
         console.error(err);
       }
     });
