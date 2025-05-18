@@ -116,9 +116,14 @@
   </div>
 
   <script>
-    const debug = document.getElementById('debug');
-    debug.style.display = 'block';
-    const log = msg => debug.innerHTML += `<div>${msg}</div>`;
+        // Remove debug log block and console logging
+      const debug = document.getElementById('debug');
+      debug.style.display = 'none';
+      const log = msg => {};
+
+      // Remove thank-you debug element visually if desired
+      // document.querySelector('.debug-log')?.remove();
+
 
     const params = new URLSearchParams(window.location.search);
     let artistId = params.get('artist_id') || params.get('artist') || 'deano';
