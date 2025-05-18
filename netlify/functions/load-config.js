@@ -11,7 +11,7 @@ exports.handler = async function(event) {
     };
   }
 
-  const sheetId = '113QUjjcc72tnxFltbh2e2wcNQ896dwOLv2uG2mrYEsY';
+  const sheetId = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
   const apiUrl = `https://opensheet.elk.sh/${sheetId}/config`;
 
   try {
