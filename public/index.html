@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Request a Song</title>
-  <link rel="stylesheet" href="/themes.css">
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/themes.css" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -23,10 +23,22 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       position: relative;
     }
-    .logo { text-align: center; margin-bottom: 1rem; }
-    .logo img { max-width: 300px; height: auto; }
-    h1 { text-align: center; color: #0059d1; }
-    label { display: block; margin: 1rem 0 0.25rem; }
+    .logo {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .logo img {
+      max-width: 300px;
+      height: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #0059d1;
+    }
+    label {
+      display: block;
+      margin: 1rem 0 0.25rem;
+    }
     input, textarea {
       width: 100%;
       padding: 0.75rem;
@@ -35,178 +47,81 @@
       box-sizing: border-box;
     }
     button {
-      width: 100%; background: #ffc107; color: black; font-weight: bold;
-      padding: 0.75rem; border: none; border-radius: 8px; margin-top: 1.5rem;
+      width: 100%;
+      background: #ffc107;
+      color: black;
+      font-weight: bold;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      margin-top: 1.5rem;
       cursor: pointer;
     }
-    .thank-you { display: none; text-align: center; color: green; margin-top: 1rem; }
+    .thank-you {
+      display: none;
+      text-align: center;
+      color: green;
+      margin-top: 1rem;
+    }
     .debug-log {
-      margin-top: 2rem; font-size: 0.85rem;
-      background: #f9f9f9; border: 1px dashed #ccc; padding: 1rem;
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      background: #f9f9f9;
+      border: 1px dashed #ccc;
+      padding: 1rem;
     }
-    .autocomplete-list {
-      list-style: none; padding: 0; margin: 0.5rem 0 0;
-      background: white; border: 1px solid #ccc; border-radius: 8px;
-      position: absolute; width: 100%; max-height: 300px; overflow-y: auto;
-      z-index: 10;
-    }
-    .autocomplete-list li { padding: 0.5rem; cursor: pointer; }
-    .autocomplete-list li:hover { background: #f0f0f0; }
-    .tip-logo-buttons {
-      display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem;
-    }
-    .tip-logo-button img { height: 36px; }
   </style>
 </head>
 <body>
   <div class="form-container">
     <div class="logo">
-      <img id="artistLogo" src="" alt="Artist Logo">
+      <img id="artistLogo" src="" alt="Artist Logo" />
     </div>
     <h1 id="artistName">Request a Song</h1>
-
     <form id="requestForm">
       <label for="name">Your Name (optional)</label>
       <input name="name" id="name" />
-      <div style="position: relative;">
-        <label for="songSearch">Song</label>
-        <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
-        <ul id="autocompleteList" class="autocomplete-list"></ul>
-      </div>
+      <label for="song">Song</label>
+      <input name="song" id="song" placeholder="Start typing a title, artist, or genre..." />
       <label for="note">Note for the Artist</label>
       <textarea name="note" id="note" rows="3"></textarea>
       <input type="hidden" name="artistId" id="artistId" />
       <button id="sendBtn" type="submit" disabled>Send Request</button>
     </form>
-
     <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
-    <div class="tip-link" id="tipLink"></div>
     <div class="debug-log" id="debug"></div>
   </div>
 
   <script>
-// Top of script
-const debug = document.getElementById('debug');
-debug.style.display = 'block';
-const log = msg => debug.innerHTML += `<div>${msg}</div>`;
+    const debug = document.getElementById('debug');
+    debug.style.display = 'block';
+    const log = msg => debug.innerHTML += `<div>${msg}</div>`;
 
-const params = new URLSearchParams(window.location.search);
-let artistId = params.get('artist_id') || params.get('artist') || 'deano';
+    const params = new URLSearchParams(window.location.search);
+    let artistId = params.get('artist_id') || params.get('artist') || 'deano';
+    document.getElementById('artistId').value = artistId;
+    const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
 
-let artist = {}, allSongs = [], userIP = '';
-window.artistReady = false;
-
-const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
-log(`🔍 Loading config for artistId: ${artistId}`);
+    let artist = {}, userIP = '';
+    window.artistReady = false;
 
     fetch('https://api.ipify.org?format=json')
       .then(r => r.json())
       .then(d => { userIP = d.ip || ''; });
 
     fetch(configURL)
-      .then(async r => {
-        const text = await r.text();
-        try {
-          return JSON.parse(text);
-        } catch (err) {
-          log(`❌ Failed to parse config JSON: ${err.message}`);
-          log(`Response was: ${text}`);
-          throw err;
-        }
-      })
+      .then(r => r.json())
       .then(data => {
-        const rawArtist = Array.isArray(data) ? data.find(row => (row.artist_id || '').toLowerCase() === artistId) : data;
-        if (!rawArtist) return log(`❌ No config found for artistId: ${artistId}`);
-        if (!rawArtist.active || rawArtist.active.toString().toLowerCase() !== 'true') {
-          document.body.innerHTML = `<div style="padding:2rem;text-align:center"><h2>This artist is currently inactive.</h2></div>`;
-          return;
+        if (!data || !data.artistId) {
+          throw new Error("Invalid artist config");
         }
-
-        artist = {
-          artistId: rawArtist.artist_id?.trim(),
-          artistName: rawArtist.artistName?.trim(),
-          logoUrl: rawArtist.logoUrl?.trim(),
-          tipLink: rawArtist.tipLink?.trim(),
-          tipSquare: rawArtist.tipSquare?.trim(),
-          tipPaypal: rawArtist.tipPaypal?.trim(),
-          tipVenmo: rawArtist.tipVenmo?.trim(),
-          tipCashapp: rawArtist.tipCashapp?.trim(),
-          tipBandcamp: rawArtist.tipBandcamp?.trim(),
-          welcomeMessage: rawArtist.welcomeMessage?.trim(),
-          thankYouMessage: rawArtist.thankYouMessage?.trim(),
-          theme: rawArtist.theme?.trim() || "default",
-          songListSheetId: rawArtist.songListSheetId || rawArtist.sheet_id,
-          pushoverUserKey: rawArtist.pushoverUserKey?.trim(),
-          pushoverToken: rawArtist.pushover_token?.trim(),
-          active: String(rawArtist.active || "").trim().toLowerCase() === "true"
-        };
-
-        artistId = artist.artistId;
-        document.getElementById("artistId").value = artist.artistId;
-
-        log('✅ Artist config loaded');
-        document.getElementById("sendBtn").disabled = false;
-        document.getElementById('artistName').textContent = artist.artistName;
-        if (artist.logoUrl) {
-          document.getElementById('artistLogo').src = artist.logoUrl;
-        }
-
-        const tipMap = [
-          ['tipSquare','Square_LogoLockup_Black.png'],
-          ['tipPaypal','paypal.png'],
-          ['tipVenmo','venmo.png'],
-          ['tipCashapp','Cash_App-Logo.wine.png'],
-          ['tipBandcamp','bandcamp-logo-png_seeklogo-306586.png']
-        ];
-        const tipLink = document.getElementById('tipLink');
-        const btns = tipMap
-          .filter(([key]) => artist[key])
-          .map(([key,img]) => `<a class="tip-logo-button" href="${artist[key]}" target="_blank"><img src="/assets/${img}" alt="${key}"></a>`);
-        if (btns.length) {
-          tipLink.innerHTML = `<div><strong>Leave a Tip for ${artist.artistName}:</strong></div><div class="tip-logo-buttons">${btns.join('')}</div>`;
-        }
-
-        const songsURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
-        log(`🎵 Fetching songs from: ${songsURL}`);
-
-        return fetch(songsURL).then(res => {
-          log(`HTTP status: ${res.status}`);
-          if (!res.ok) throw new Error(`Status ${res.status}`);
-          return res.json();
-        });
-      })
-      .then(rows => {
-        if (!rows) return;
-        log(`✅ Songs loaded. Sample: ${JSON.stringify(rows.slice(0, 2))}`);
-        allSongs = rows.map(row => row.Title).filter(Boolean);
-
-        const searchBox = document.getElementById('songSearch');
-        const autoList = document.getElementById('autocompleteList');
-
-        searchBox.addEventListener('input', () => {
-          const term = searchBox.value.trim().toLowerCase();
-          autoList.innerHTML = '';
-          if (!term) return;
-          allSongs
-            .filter(song => song.toLowerCase().includes(term))
-            .forEach(song => {
-              const li = document.createElement('li');
-              li.innerHTML = song.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
-              li.addEventListener('click', () => {
-                searchBox.value = song;
-                autoList.innerHTML = '';
-              });
-              autoList.appendChild(li);
-            });
-        });
-
-        document.addEventListener('click', e => {
-          if (!searchBox.contains(e.target) && !autoList.contains(e.target)) {
-            autoList.innerHTML = '';
-          }
-        });
-
+        artist = data;
         window.artistReady = true;
+        log('✅ Artist config loaded');
+        document.getElementById("artistId").value = artist.artistId;
+        document.getElementById("artistName").textContent = artist.artistName;
+        if (artist.logoUrl) document.getElementById("artistLogo").src = artist.logoUrl;
+        document.getElementById("sendBtn").disabled = false;
       })
       .catch(err => {
         log(`❌ Load error: ${err.message}`);
@@ -215,7 +130,6 @@ log(`🔍 Loading config for artistId: ${artistId}`);
 
     document.getElementById('requestForm').addEventListener('submit', async e => {
       e.preventDefault();
-
       if (!window.artistReady) {
         alert("Please wait, the artist information is still loading.");
         return;
@@ -223,28 +137,9 @@ log(`🔍 Loading config for artistId: ${artistId}`);
 
       const form = e.target;
       const data = Object.fromEntries(new FormData(form).entries());
-
-      if (!data.song || data.song.trim() === "") {
-        data.song = document.getElementById("songSearch").value;
-      }
-
-      artist.artistId = document.getElementById("artistId")?.value || artist.artistId || '';
-      if (!artist.artistId) {
-        alert("Missing artist ID. Please refresh the page.");
-        return;
-      }
-
       data.ip = userIP;
-      data.artistId = artist.artistId;
       data.pushoverToken = artist.pushoverToken;
       data.pushoverUserKey = artist.pushoverUserKey;
-
-      console.log("🚀 Form data:", JSON.stringify(data, null, 2));
-      console.log("🎯 artistId used:", artist.artistId);
-      console.log("📦 Final submission data:", data);
-
-      log(`📦 Sending pushoverToken: ${data.pushoverToken}`);
-      log(`📦 Sending pushoverUserKey: ${data.pushoverUserKey}`);
 
       try {
         const response = await fetch('/.netlify/functions/submit-request', {
@@ -253,9 +148,8 @@ log(`🔍 Loading config for artistId: ${artistId}`);
           body: JSON.stringify(data)
         });
 
-        const result = await response.text();
-        log(`✅ Server response: ${result}`);
-
+        const result = await response.json();
+        log(`✅ Server response: ${JSON.stringify(result)}`);
         form.reset();
         const msg = document.getElementById('thankYouMessage');
         msg.style.display = 'block';

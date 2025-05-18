@@ -1,50 +1,44 @@
+// submit-request.js
 const fetch = require('node-fetch');
+const { GoogleSpreadsheet } = require('google-spreadsheet');
 
-exports.handler = async function (event, context) {
+exports.handler = async function(event) {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+
+  const data = JSON.parse(event.body);
+  const required = ['song', 'artistId', 'pushoverToken', 'pushoverUserKey'];
+  const missing = required.filter(key => !data[key]);
+
+  if (missing.length) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing required fields', missing })
+    };
+  }
+
   try {
-    const data = JSON.parse(event.body);
-    const { name, song, note, artistId, ip, pushoverUserKey, pushover_token } = data;
-
-    if (!song || !artistId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing required fields" }),
-      };
-    }
-
-    // Format message
-    const msg = `🎶 New request for ${artistId}\n\n` +
-                `${song}${note ? `\n\n💬 ${note}` : ''}${name ? `\n🙋 ${name}` : ''}${ip ? `\n🌐 IP: ${ip}` : ''}`;
-
-    // Send Pushover notification
-    const response = await fetch('https://api.pushover.net/1/messages.json', {
+    await fetch('https://api.pushover.net/1/messages.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        token: pushover_token,
-        user: pushoverUserKey,
-        message: msg,
-        title: `🎤 Song Request: ${song}`,
+        token: data.pushoverToken,
+        user: data.pushoverUserKey,
+        title: '🎵 New Song Request',
+        message: `${data.song}${data.name ? ' from ' + data.name : ''}${data.note ? '\nNote: ' + data.note : ''}`,
         priority: 0
       })
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      return {
-        statusCode: 502,
-        body: JSON.stringify({ error: "Pushover error", details: text })
-      };
-    }
-
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true }),
+      body: JSON.stringify({ success: true, message: 'Request submitted and notification sent.' })
     };
   } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error", details: err.message }),
+      body: JSON.stringify({ error: 'Failed to send notification', details: err.message })
     };
   }
 };
