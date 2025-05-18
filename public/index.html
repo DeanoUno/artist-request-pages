@@ -172,10 +172,13 @@
               song.title.toLowerCase().includes(term) ||
               song.artist.toLowerCase().includes(term) ||
               song.genre.toLowerCase().includes(term))
+            // inside the song list render loop, replace display assignment and li.innerHTML
             .forEach(song => {
-              const display = `${song.title} — ${song.artist} [${song.genre}]`;
               const li = document.createElement('li');
-              li.innerHTML = display.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
+              li.innerHTML = `
+                <div style="font-weight:bold">${song.title}</div>
+                <div style="font-size:0.85em; color:#555;">${song.artist} • ${song.genre}</div>
+              `.replace(new RegExp(`(${term})`, 'gi'), '<strong>$1</strong>');
               li.addEventListener('click', () => {
                 searchBox.value = song.title;
                 autoList.innerHTML = '';
