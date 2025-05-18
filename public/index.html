@@ -166,11 +166,13 @@
           autoList.innerHTML = '';
           if (!term) return;
 
+...
           allSongs
             .filter(song =>
-              song.title.toLowerCase().includes(term) ||
-              song.artist.toLowerCase().includes(term) ||
-              song.genre.toLowerCase().includes(term))
+              song.title &&
+              (song.title.toLowerCase().includes(term) ||
+               song.artist.toLowerCase().includes(term) ||
+               song.genre.toLowerCase().includes(term)))
             .forEach(song => {
               const li = document.createElement('li');
               li.innerHTML = `
@@ -183,6 +185,7 @@
               });
               autoList.appendChild(li);
             });
+...
         });
 
         document.addEventListener('click', e => {
