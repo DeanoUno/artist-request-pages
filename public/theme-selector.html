@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choose Your Theme</title>
+  <link rel="stylesheet" href="/themes.css">
+  <style>
+    body {
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .theme-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .theme-buttons button {
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #ddd;
+    }
+    .preview-box {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 2rem;
+      margin: 1rem auto;
+      max-width: 600px;
+      background: white;
+    }
+    .selected-theme-display {
+      margin: 1rem auto;
+      text-align: center;
+    }
+    .copy-button {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="default">
+  <h1 style="text-align:center;">🎨 Choose Your Theme</h1>
+  <div class="theme-buttons">
+    <button onclick="setTheme('default')">Default</button>
+    <button onclick="setTheme('dark')">Dark</button>
+    <button onclick="setTheme('coastal')">Coastal</button>
+    <button onclick="setTheme('elegant')">Elegant</button>
+    <button onclick="setTheme('disco')">Disco</button>
+  </div>
+
+  <div class="preview-box">
+    <h2>Sample Request Form</h2>
+    <p>Imagine your form styled with this theme.</p>
+    <p>This is just a preview. Your real form will use this exact layout.</p>
+  </div>
+
+  <div class="selected-theme-display">
+    <p>Selected Theme: <strong id="selectedTheme">default</strong></p>
+    <button class="copy-button" onclick="copyTheme()">📋 Copy Theme Name</button>
+  </div>
+
+  <script>
+    function setTheme(name) {
+      document.body.className = name;
+      document.getElementById('selectedTheme').textContent = name;
+    }
+
+    function copyTheme() {
+      const theme = document.getElementById('selectedTheme').textContent;
+      navigator.clipboard.writeText(theme).then(() => {
+        alert(`Copied theme name: ${theme}`);
+      });
+    }
+  </script>
+
+  <!-- Optional: Google Apps Script endpoint for saving selection to the artist config sheet -->
+  <!-- In production, add a secure POST call to save theme -->
+  <!-- Example button (to be wired up): -->
+  <!--
+    <button onclick="saveThemeToSheet()">Save Theme to Config</button>
+    <script>
+      async function saveThemeToSheet() {
+        const theme = document.getElementById('selectedTheme').textContent;
+        const artistId = prompt("Enter your Artist ID to update your config sheet:");
+        if (!artistId) return;
+        const res = await fetch('/save-theme', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ artistId, theme })
+        });
+        const json = await res.json();
+        alert(json.success ? "Theme saved!" : "Error saving theme");
+      }
+    </script>
+  -->
+
+</body>
+</html>

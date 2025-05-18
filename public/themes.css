@@ -1,4 +1,58 @@
-/* public/themes.css */
-body {
+/* Default Theme */
+body.default {
   background-color: #f5f9ff;
+  color: #222;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Dark Theme */
+body.dark {
+  background-color: #121212;
+  color: #eeeeee;
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* Coastal Theme */
+body.coastal {
+  background-color: #e0f7fa;
+  color: #004d40;
+  font-family: 'Cabin', sans-serif;
+}
+
+/* Elegant Theme */
+body.elegant {
+  background-color: #faf6f0;
+  color: #4a3f35;
+  font-family: 'Georgia', serif;
+}
+
+/* Disco Theme */
+body.disco {
+  background-color: #ffe0f7;
+  color: #5f0278;
+  font-family: 'Comic Sans MS', cursive;
+}
+
+/* Shared styling overrides */
+body {
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Buttons */
+body.default button,
+body.coastal button,
+body.elegant button {
+  background-color: #ffc107;
+  color: black;
+}
+
+body.dark button {
+  background-color: #333;
+  color: #fff;
+}
+
+body.disco button {
+  background-color: #ff00c8;
+  color: white;
+  text-shadow: 1px 1px 2px black;
 }
