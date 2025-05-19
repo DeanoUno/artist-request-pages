@@ -1,17 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
- <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&family=Cabin&display=swap" rel="stylesheet">
- <title>Request a Song</title>
+  <title>Request a Song</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&family=Cabin&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/themes.css" />
   <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 2rem;
+      padding: 1rem;
       background: #f5f9ff;
       color: #222;
     }
@@ -19,22 +20,22 @@
       max-width: 500px;
       margin: auto;
       background: white;
-      padding: 2rem;
+      padding: 1.5rem;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      position: relative;
     }
     .logo {
       text-align: center;
       margin-bottom: 1rem;
     }
     .logo img {
-      max-width: 300px;
+      max-width: 100%;
       height: auto;
     }
     h1 {
       text-align: center;
       color: #0059d1;
+      font-size: 1.5rem;
     }
     label {
       display: block;
@@ -46,6 +47,7 @@
       border-radius: 8px;
       border: 1px solid #ccc;
       box-sizing: border-box;
+      font-size: 1rem;
     }
     button {
       width: 100%;
@@ -56,6 +58,7 @@
       border: none;
       border-radius: 8px;
       margin-top: 1.5rem;
+      font-size: 1rem;
       cursor: pointer;
     }
     .thank-you {
@@ -64,7 +67,6 @@
       color: green;
       margin-top: 1rem;
     }
-
     .autocomplete-list {
       position: absolute;
       border: 1px solid #ccc;
@@ -94,6 +96,18 @@
     .autocomplete-active {
       background-color: #e0f0ff;
     }
+    .tip-buttons {
+      display: none;
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .tip-buttons p {
+      margin-bottom: 0.5rem;
+    }
+    .tip-buttons a img {
+      height: 40px;
+      margin: 0.5rem;
+    }
   </style>
 </head>
 <body id="pageBody">
@@ -117,127 +131,102 @@
     </form>
     <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
 
+    <div id="tipSection" class="tip-buttons">
+      <p><strong>Tip the Artist:</strong></p>
+      <div>
+        <a id="tipVenmo" target="_blank"><img src="/assets/venmo.png" alt="Venmo" /></a>
+        <a id="tipCashapp" target="_blank"><img src="/assets/cash-app-logo.png" alt="Cash App" /></a>
+        <a id="tipBandcamp" target="_blank"><img src="/assets/bandcamp.png" alt="Bandcamp" /></a>
+        <a id="tipSquare" target="_blank"><img src="/assets/square.png" alt="Square" /></a>
+        <a id="tipLink" target="_blank"><img src="/assets/tipjar.png" alt="Tip Jar" /></a>
+      </div>
+    </div>
   </div>
+<script>
 
-  <script>
+const params = new URLSearchParams(window.location.search);
+let artistId = params.get('artist_id') || params.get('artist') || 'deano';
+document.getElementById('artistId').value = artistId;
+const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
 
-    const params = new URLSearchParams(window.location.search);
-    let artistId = params.get('artist_id') || params.get('artist') || 'deano';
-    document.getElementById('artistId').value = artistId;
-    const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
+let artist = {}, allSongs = [], userIP = '';
+window.artistReady = false;
 
-    let artist = {}, allSongs = [], userIP = '';
-    window.artistReady = false;
+fetch('https://api.ipify.org?format=json')
+  .then(r => r.json())
+  .then(d => { userIP = d.ip || ''; });
 
-    fetch('https://api.ipify.org?format=json')
-      .then(r => r.json())
-      .then(d => { userIP = d.ip || ''; });
+fetch(configURL)
+  .then(r => r.json())
+  .then(data => {
+    if (!data || !data.artistId) throw new Error("Invalid artist config");
 
-    fetch(configURL)
-      .then(r => r.json())
-      .then(data => {
-        if (!data || !data.artistId) {
-          throw new Error("Invalid artist config");
-        }
-        artist = data;
-       artist.themeName = (artist.themeName || '').trim().toLowerCase();
+    artist = data;
+    artist.themeName = (artist.themeName || '').trim().toLowerCase();
 
-        if (artist.themeName) {
-          document.getElementById('pageBody').classList.add(artist.themeName);
-        } else {
-          document.getElementById('pageBody').classList.add('default');
-        }
-              // Set up tip buttons from artist config
-        if (artist.tipVenmo) {
-          document.getElementById('tipVenmo').href = artist.tipVenmo;
-        }
-        if (artist.tipCashapp) {
-          document.getElementById('tipCashapp').href = artist.tipCashapp;
-        }
-        if (artist.tipBandcamp) {
-          document.getElementById('tipBandcamp').href = artist.tipBandcamp;
-        }
-        if (artist.tipSquare) {
-          document.getElementById('tipSquare').href = artist.tipSquare;
-        }
-        if (artist.tipLink) {
-          document.getElementById('tipLink').href = artist.tipLink;
-        }
+    if (artist.themeName) {
+      document.getElementById('pageBody').classList.add(artist.themeName);
+    } else {
+      document.getElementById('pageBody').classList.add('default');
+    }
 
-        // Show tip section if any exist
-        if (
-          artist.tipVenmo || artist.tipCashapp || artist.tipBandcamp ||
-          artist.tipSquare || artist.tipLink
-        ) {
-          document.getElementById('tipSection').style.display = 'block';
-        }
+    // Tip buttons
+    if (artist.tipVenmo) document.getElementById('tipVenmo').href = artist.tipVenmo;
+    if (artist.tipCashapp) document.getElementById('tipCashapp').href = artist.tipCashapp;
+    if (artist.tipBandcamp) document.getElementById('tipBandcamp').href = artist.tipBandcamp;
+    if (artist.tipSquare) document.getElementById('tipSquare').href = artist.tipSquare;
+    if (artist.tipLink) document.getElementById('tipLink').href = artist.tipLink;
 
-       
-        window.artistReady = true;
+    if (artist.tipVenmo || artist.tipCashapp || artist.tipBandcamp || artist.tipSquare || artist.tipLink) {
+      document.getElementById('tipSection').style.display = 'block';
+    }
 
- 
-        
-        
-        document.getElementById("artistId").value = artist.artistId;
-        document.getElementById("artistName").textContent = artist.artistName;
-        if (artist.logoUrl) document.getElementById("artistLogo").src = artist.logoUrl;
-        document.getElementById("sendBtn").disabled = false;
+    window.artistReady = true;
+    document.getElementById("artistId").value = artist.artistId;
+    document.getElementById("artistName").textContent = artist.artistName;
+    if (artist.logoUrl) document.getElementById("artistLogo").src = artist.logoUrl;
+    document.getElementById("sendBtn").disabled = false;
 
-        const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
-        return fetch(songListURL);
-      })
-      .then(res => res.json())
-      .then(rows => {
-
-        
-        allSongs = rows.map(row => ({
-          title: row.title || row.Title || '',
-          artist: row.artist || row.Artist || '',
-          genre: row.genre || row.Genre || ''
-        })).filter(song => song.title);
-
-        setupAutocomplete(document.getElementById("songSearch"), allSongs);
-      })
-      .catch(err => {
-
-        console.error(err);
-      });
+    const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
+    return fetch(songListURL);
+  })
+  .then(res => res.json())
+  .then(rows => {
+    allSongs = rows.map(row => ({
+      title: row.title || row.Title || '',
+      artist: row.artist || row.Artist || '',
+      genre: row.genre || row.Genre || ''
+    })).filter(song => song.title);
+    setupAutocomplete(document.getElementById("songSearch"), allSongs);
+  })
+  .catch(err => console.error(err));
 
 function setupAutocomplete(input, data) {
   let currentFocus;
-
   input.addEventListener("input", function () {
     closeAllLists();
     const val = this.value.trim().toLowerCase();
     if (!val) return false;
-
     currentFocus = -1;
-
     const list = document.getElementById("autocompleteList");
     list.innerHTML = '';
-
-    data
-      .filter(song =>
-        song.title.toLowerCase().includes(val) ||
-        song.artist.toLowerCase().includes(val) ||
-        song.genre.toLowerCase().includes(val)
-      )
-      .forEach(song => {
-        const item = document.createElement("div");
-        item.innerHTML =
-          '<div class="song-title">' + song.title + '</div>' +
-          '<div class="song-meta">' + song.artist + ' • ' + song.genre + '</div>';
-
-        item.classList.add("autocomplete-item");
-
-        item.addEventListener("click", function () {
-          input.value = song.title;
-          closeAllLists();
-        });
-
-        list.appendChild(item);
+    data.filter(song =>
+      song.title.toLowerCase().includes(val) ||
+      song.artist.toLowerCase().includes(val) ||
+      song.genre.toLowerCase().includes(val)
+    ).forEach(song => {
+      const item = document.createElement("div");
+      item.innerHTML =
+        '<div class="song-title">' + song.title + '</div>' +
+        '<div class="song-meta">' + song.artist + ' • ' + song.genre + '</div>';
+      item.classList.add("autocomplete-item");
+      item.addEventListener("click", function () {
+        input.value = song.title;
+        closeAllLists();
       });
-  }); // ✅ This closing brace was missing in your version
+      list.appendChild(item);
+    });
+  });
 
   input.addEventListener("keydown", function (e) {
     let items = document.querySelectorAll(".autocomplete-item");
@@ -279,37 +268,35 @@ function setupAutocomplete(input, data) {
   });
 }
 
-    document.getElementById('requestForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      if (!window.artistReady) {
-        alert("Please wait, the artist information is still loading.");
-        return;
-      }
+document.getElementById('requestForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!window.artistReady) {
+    alert("Please wait, the artist information is still loading.");
+    return;
+  }
 
-      const form = e.target;
-      const data = Object.fromEntries(new FormData(form).entries());
-      data.ip = userIP;
-      data.pushoverToken = artist.pushoverToken;
-      data.pushoverUserKey = artist.pushoverUserKey;
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.ip = userIP;
+  data.pushoverToken = artist.pushoverToken;
+  data.pushoverUserKey = artist.pushoverUserKey;
 
-      try {
-        const response = await fetch('/.netlify/functions/submit-request', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        form.reset();
-        const msg = document.getElementById('thankYouMessage');
-        msg.style.display = 'block';
-        setTimeout(() => msg.style.display = 'none', 5000);
-      } catch (err) {
-
-        console.error(err);
-      }
+  try {
+    const response = await fetch('/.netlify/functions/submit-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
-  </script>
+    const result = await response.json();
+    form.reset();
+    const msg = document.getElementById('thankYouMessage');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 5000);
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+</script>
 </body>
 </html>
