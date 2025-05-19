@@ -301,6 +301,7 @@ if (!validSongs.has(songInput)) {
 
   const data = Object.fromEntries(new FormData(form).entries());
   data.ip = userIP;
+  console.log("Artist config:", artist);
   data.pushoverToken = artist.pushoverToken;
   data.pushoverUserKey = artist.pushoverUserKey;
 
