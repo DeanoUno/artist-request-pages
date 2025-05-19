@@ -294,10 +294,10 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
 
   const form = e.target;
   const songInput = form.song.value.trim().toLowerCase();
-if (!validSongs.has(songInput)) {
-  alert("Please select a song from the dropdown list.");
-  return;
-}
+//if (!validSongs.has(songInput)) {
+ // alert("Please select a song from the dropdown list.");
+ // return;
+//}
 
   const data = Object.fromEntries(new FormData(form).entries());
   data.ip = userIP;
