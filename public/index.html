@@ -132,7 +132,7 @@
     <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
 
 <div id="tipSection" class="tip-buttons" style="display: none;">
-  <p><strong>Tip the Artist:</strong></p>
+  <p><strong>Tips are greatly appreciated:</strong></p>
   <div id="tipLinks"></div>
 </div>
   </div>
@@ -205,6 +205,9 @@ fetch(configURL)
       artist: row.artist || row.Artist || '',
       genre: row.genre || row.Genre || ''
     })).filter(song => song.title);
+    
+    const validSongs = new Set(allSongs.map(song => song.title.toLowerCase().trim()));
+    
     setupAutocomplete(document.getElementById("songSearch"), allSongs);
   })
   .catch(err => console.error(err));
@@ -284,6 +287,12 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
   }
 
   const form = e.target;
+  const songInput = form.song.value.trim().toLowerCase();
+if (!validSongs.has(songInput)) {
+  alert("Please select a song from the dropdown list.");
+  return;
+}
+
   const data = Object.fromEntries(new FormData(form).entries());
   data.ip = userIP;
   data.pushoverToken = artist.pushoverToken;
