@@ -137,61 +137,19 @@
 </div>
   </div>
 <script>
+let allSongs = [];
+let validSongs = new Set();
+let userIP = '';
 
-const params = new URLSearchParams(window.location.search);
-let artistId = params.get('artist_id') || params.get('artist') || 'deano';
-document.getElementById('artistId').value = artistId;
-const configURL = '/.netlify/functions/load-config?artist_id=' + artistId;
-
-let artist = {}, allSongs = [], userIP = '';
-window.artistReady = false;
-
-fetch('https://api.ipify.org?format=json')
-  .then(r => r.json())
-  .then(d => { userIP = d.ip || ''; });
-
-fetch(configURL)
-  .then(r => r.json())
-  .then(data => {
-    if (!data || !data.artistId) throw new Error("Invalid artist config");
-
-    artist = data;
-    artist.themeName = (artist.themeName || '').trim().toLowerCase();
-
-    if (artist.themeName) {
-      document.getElementById('pageBody').classList.add(artist.themeName);
-    } else {
-      document.getElementById('pageBody').classList.add('default');
-    }
-
-
-    const tipLinks = document.getElementById('tipLinks');
-    const tipConfigs = [
-      { key: 'tipPaypal', img: 'paypal.png', alt: 'PayPal' },
-      { key: 'tipVenmo', img: 'venmo.png', alt: 'Venmo' },
-      { key: 'tipCashapp', img: 'Cash_App-Logo.wine.png', alt: 'Cash App' },
-      { key: 'tipBandcamp', img: 'bandcamp-logo-png_seeklogo-306586.png', alt: 'Bandcamp' },
-      { key: 'tipSquare', img: 'Square_LogoLockup_Black.png', alt: 'Square' },
-      { key: 'tipLink', img: 'tipjar-logo.png', alt: 'Tip Jar' }
-    ];
-    let showTips = false;
-    tipConfigs.forEach(({ key, img, alt }) => {
-      if (artist[key]) {
-        const a = document.createElement('a');
-        a.href = artist[key];
-        a.target = '_blank';
-        a.innerHTML = `<img src="/assets/${img}" alt="${alt}" />`;
-        tipLinks.appendChild(a);
-        showTips = true;
-      }
-    });
-    if (showTips) {
-      document.getElementById('tipSection').style.display = 'block';
-    }
-
+fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist_id'))
+  .then(res => res.json())
+  .then(artist => {
+    window.artist = artist;
     window.artistReady = true;
+
     document.getElementById("artistId").value = artist.artistId;
     document.getElementById("artistName").textContent = artist.artistName;
+
     const logoImg = document.getElementById("artistLogo");
     if (artist.logoUrl && artist.logoUrl.trim()) {
       logoImg.src = artist.logoUrl.trim();
@@ -199,14 +157,13 @@ fetch(configURL)
     } else {
       logoImg.style.display = "none";
     }
+
     document.getElementById("sendBtn").disabled = false;
 
-let allSongs = [];
-let validSongs = new Set(); // ✅ Declare it at the top-level
+    const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
 
-const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
-
-fetch(songListURL)
+    return fetch(songListURL);
+  })
   .then(res => res.json())
   .then(rows => {
     allSongs = rows.map(row => ({
@@ -219,10 +176,12 @@ fetch(songListURL)
 
     setupAutocomplete(document.getElementById("songSearch"), allSongs);
   })
-  .catch(err => console.error(err));
+  .catch(err => console.error("Error loading config or songs:", err));
 
+// Autocomplete setup
 function setupAutocomplete(input, data) {
   let currentFocus;
+
   input.addEventListener("input", function () {
     closeAllLists();
     const val = this.value.trim().toLowerCase();
@@ -287,7 +246,16 @@ function setupAutocomplete(input, data) {
     closeAllLists(e.target);
   });
 }
+fetch('https://api.ipify.org?format=json')
+  .then(res => res.json())
+  .then(data => {
+    userIP = data.ip;
+  })
+  .catch(() => {
+    userIP = 'Unavailable';
+  });
 
+// Form submit handler
 document.getElementById('requestForm').addEventListener('submit', async e => {
   e.preventDefault();
   if (!window.artistReady) {
@@ -297,14 +265,14 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
 
   const form = e.target;
   const songInput = form.song.value.trim().toLowerCase();
-if (!validSongs.has(songInput)) {
-  alert("Please select a song from the dropdown list.");
-  return;
-}
+
+  if (!validSongs.has(songInput)) {
+    alert("Please select a song from the dropdown list.");
+    return;
+  }
 
   const data = Object.fromEntries(new FormData(form).entries());
   data.ip = userIP;
-  console.log("Artist config:", artist);
   data.pushoverToken = artist.pushoverToken;
   data.pushoverUserKey = artist.pushoverUserKey;
 
@@ -320,10 +288,9 @@ if (!validSongs.has(songInput)) {
     msg.style.display = 'block';
     setTimeout(() => msg.style.display = 'none', 5000);
   } catch (err) {
-    console.error(err);
+    console.error("Submission failed:", err);
   }
 });
-
 </script>
 </body>
 </html>
