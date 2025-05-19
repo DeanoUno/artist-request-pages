@@ -6,7 +6,28 @@ exports.handler = async function(event) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const data = JSON.parse(event.body);
+  const raw = JSON.parse(event.body);
+
+  // 🔒 Sanitize helper function
+  const sanitize = (str, maxLen = 300) =>
+    String(str || '')
+      .replace(/[<>]/g, '') // Remove angle brackets
+      .replace(/[\u0000-\u001F\u007F]/g, '') // Remove control characters
+      .trim()
+      .substring(0, maxLen);
+
+  // 🔐 Sanitize incoming fields
+  const data = {
+    artistId: sanitize(raw.artistId, 50),
+    name: sanitize(raw.name, 50),
+    song: sanitize(raw.song, 150),
+    note: sanitize(raw.note, 300),
+    ip: sanitize(raw.ip, 45),
+    pushoverToken: sanitize(raw.pushoverToken, 50),
+    pushoverUserKey: sanitize(raw.pushoverUserKey, 50)
+  };
+
+  // ✅ Ensure required fields are present after sanitization
   const required = ['song', 'artistId', 'pushoverToken', 'pushoverUserKey'];
   const missing = required.filter(key => !data[key]);
 
