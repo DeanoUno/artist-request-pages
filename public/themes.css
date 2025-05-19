@@ -1,3 +1,8 @@
+
+/* Import Google Fonts in index.html <head>:
+<link href="https://fonts.googleapis.com/css2?family=Comic+Neue&family=Cabin&display=swap" rel="stylesheet">
+*/
+
 /* Default Theme */
 body.default {
   background-color: #f5f9ff;
@@ -12,11 +17,21 @@ body.dark {
   font-family: 'Roboto Mono', monospace;
 }
 
+body.dark button {
+  background-color: #333;
+  color: #fff;
+}
+
 /* Coastal Theme */
 body.coastal {
   background-color: #e0f7fa;
   color: #004d40;
   font-family: 'Cabin', sans-serif;
+}
+
+body.coastal button {
+  background-color: #ffc107;
+  color: black;
 }
 
 /* Elegant Theme */
@@ -26,11 +41,23 @@ body.elegant {
   font-family: 'Georgia', serif;
 }
 
+body.elegant button {
+  background-color: #ffc107;
+  color: black;
+}
+
 /* Disco Theme */
 body.disco {
   background-color: #ffe0f7;
   color: #5f0278;
-  font-family: 'Comic Sans MS', cursive;
+  font-family: 'Comic Neue', cursive;
+}
+
+body.disco button {
+  background-color: #ff00c8;
+  color: white;
+  text-shadow: 1px 1px 2px black;
+  border-radius: 10px;
 }
 
 /* Shared styling overrides */
@@ -38,21 +65,32 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Buttons */
-body.default button,
-body.coastal button,
-body.elegant button {
-  background-color: #ffc107;
-  color: black;
-}
+/* Mobile-first enhancements */
+@media (max-width: 480px) {
+  body {
+    font-size: 16px;
+  }
 
-body.dark button {
-  background-color: #333;
-  color: #fff;
-}
+  .form-container {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
 
-body.disco button {
-  background-color: #ff00c8;
-  color: white;
-  text-shadow: 1px 1px 2px black;
+  input, textarea, select, button {
+    font-size: 1rem;
+    min-height: 44px; /* Bigger tap targets */
+  }
+
+  .logo img {
+    max-width: 200px;
+    height: auto;
+  }
+
+  .thank-you {
+    font-size: 1rem;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+  }
 }
