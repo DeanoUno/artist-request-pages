@@ -141,11 +141,12 @@ let allSongs = [];
 let validSongs = new Set();
 let userIP = '';
 
-fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist_id'))
+fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist')
+))
   .then(res => res.json())
   .then(artist => {
     window.artist = artist;
-    window.artistReady = true;
+    window.artistReady = true;URL
 
     document.getElementById("artistId").value = artist.artistId;
     document.getElementById("artistName").textContent = artist.artistName;
