@@ -218,7 +218,7 @@ fetch(songListURL)
     validSongs = new Set(allSongs.map(song => song.title.toLowerCase().trim()));
 
     setupAutocomplete(document.getElementById("songSearch"), allSongs);
-  });
+  })
   .catch(err => console.error(err));
 
 function setupAutocomplete(input, data) {
