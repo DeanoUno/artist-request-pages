@@ -191,79 +191,81 @@
         console.error(err);
       });
 
-    function setupAutocomplete(input, data) {
-      let currentFocus;
-      input.addEventListener("input", function () {
-        closeAllLists();
-        const val = this.value.trim().toLowerCase();
-        if (!val) return false;
+function setupAutocomplete(input, data) {
+  let currentFocus;
 
-        currentFocus = -1;
+  input.addEventListener("input", function () {
+    closeAllLists();
+    const val = this.value.trim().toLowerCase();
+    if (!val) return false;
 
-        const list = document.getElementById("autocompleteList");
-        list.innerHTML = '';
+    currentFocus = -1;
 
-data
-  .filter(song =>
-    song.title.toLowerCase().includes(val) ||
-    song.artist.toLowerCase().includes(val) ||
-    song.genre.toLowerCase().includes(val)
-  )
-  .forEach(song => {
-    const item = document.createElement("div");
-item.innerHTML =
-  '<div class="song-title">' + song.title + '</div>' +
-  '<div class="song-meta">' + song.artist + ' • ' + song.genre + '</div>';
-  
-    item.classList.add("autocomplete-item");
+    const list = document.getElementById("autocompleteList");
+    list.innerHTML = '';
 
-    item.addEventListener("click", function () {
-      input.value = song.title;
-      closeAllLists();
-    });
+    data
+      .filter(song =>
+        song.title.toLowerCase().includes(val) ||
+        song.artist.toLowerCase().includes(val) ||
+        song.genre.toLowerCase().includes(val)
+      )
+      .forEach(song => {
+        const item = document.createElement("div");
+        item.innerHTML =
+          '<div class="song-title">' + song.title + '</div>' +
+          '<div class="song-meta">' + song.artist + ' • ' + song.genre + '</div>';
 
-    list.appendChild(item);
+        item.classList.add("autocomplete-item");
+
+        item.addEventListener("click", function () {
+          input.value = song.title;
+          closeAllLists();
+        });
+
+        list.appendChild(item);
+      });
+  }); // ✅ This closing brace was missing in your version
+
+  input.addEventListener("keydown", function (e) {
+    let items = document.querySelectorAll(".autocomplete-item");
+    if (e.key === "ArrowDown") {
+      currentFocus++;
+      setActive(items);
+    } else if (e.key === "ArrowUp") {
+      currentFocus--;
+      setActive(items);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (currentFocus > -1 && items[currentFocus]) {
+        items[currentFocus].click();
+      }
+    }
   });
 
-      input.addEventListener("keydown", function (e) {
-        let items = document.querySelectorAll(".autocomplete-item");
-        if (e.key === "ArrowDown") {
-          currentFocus++;
-          setActive(items);
-        } else if (e.key === "ArrowUp") {
-          currentFocus--;
-          setActive(items);
-        } else if (e.key === "Enter") {
-          e.preventDefault();
-          if (currentFocus > -1 && items[currentFocus]) {
-            items[currentFocus].click();
-          }
-        }
-      });
+  function setActive(items) {
+    if (!items) return;
+    removeActive(items);
+    if (currentFocus >= items.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = items.length - 1;
+    items[currentFocus].classList.add("autocomplete-active");
+  }
 
-      function setActive(items) {
-        if (!items) return;
-        removeActive(items);
-        if (currentFocus >= items.length) currentFocus = 0;
-        if (currentFocus < 0) currentFocus = items.length - 1;
-        items[currentFocus].classList.add("autocomplete-active");
-      }
+  function removeActive(items) {
+    items.forEach(i => i.classList.remove("autocomplete-active"));
+  }
 
-      function removeActive(items) {
-        items.forEach(i => i.classList.remove("autocomplete-active"));
-      }
-
-      function closeAllLists(elmnt) {
-        const list = document.getElementById("autocompleteList");
-        if (!elmnt || (elmnt !== list && elmnt !== input)) {
-          list.innerHTML = '';
-        }
-      }
-
-      document.addEventListener("click", function (e) {
-        closeAllLists(e.target);
-      });
+  function closeAllLists(elmnt) {
+    const list = document.getElementById("autocompleteList");
+    if (!elmnt || (elmnt !== list && elmnt !== input)) {
+      list.innerHTML = '';
     }
+  }
+
+  document.addEventListener("click", function (e) {
+    closeAllLists(e.target);
+  });
+}
 
     document.getElementById('requestForm').addEventListener('submit', async e => {
       e.preventDefault();
