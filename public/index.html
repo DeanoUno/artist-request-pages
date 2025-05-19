@@ -101,7 +101,7 @@
     }
   </style>
 </head>
-<body>
+<body id="pageBody">
   <div class="form-container">
     <div class="logo">
       <img id="artistLogo" src="" alt="Artist Logo" />
@@ -149,6 +149,17 @@
         }
         artist = data;
         window.artistReady = true;
+      // Apply artist theme if provided
+      if (artist.themeName) {
+        document.getElementById('pageBody').classList.add(artist.themeName);
+        log(`🎨 Theme applied: ${artist.themeName}`);
+      } else {
+        document.getElementById('pageBody').classList.add('default');
+        log('🎨 No theme specified, using default');
+      }
+ 
+        
+        
         log('✅ Artist config loaded');
         document.getElementById("artistId").value = artist.artistId;
         document.getElementById("artistName").textContent = artist.artistName;
