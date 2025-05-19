@@ -131,9 +131,11 @@
     </form>
     <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
 
-    <div id="tipSection" class="tip-buttons">
+    <div id="tipSection" class="tip-buttons" style="display: none;">
+  <div id="tipLinks"></div>
       <p><strong>Tip the Artist:</strong></p>
       <div>
+        <a id="tipPaypal" target="_blank"><img src="/assets/paypal.png" alt="PayPal" /></a>
         <a id="tipVenmo" target="_blank"><img src="/assets/venmo.png" alt="Venmo" /></a>
         <a id="tipCashapp" target="_blank"><img src="/assets/cash-app-logo.png" alt="Cash App" /></a>
         <a id="tipBandcamp" target="_blank"><img src="/assets/bandcamp.png" alt="Bandcamp" /></a>
@@ -171,13 +173,34 @@ fetch(configURL)
     }
 
     // Tip buttons
+    if (artist.tipPaypal) document.getElementById('tipPaypal').href = artist.tipPaypal;
     if (artist.tipVenmo) document.getElementById('tipVenmo').href = artist.tipVenmo;
     if (artist.tipCashapp) document.getElementById('tipCashapp').href = artist.tipCashapp;
     if (artist.tipBandcamp) document.getElementById('tipBandcamp').href = artist.tipBandcamp;
     if (artist.tipSquare) document.getElementById('tipSquare').href = artist.tipSquare;
     if (artist.tipLink) document.getElementById('tipLink').href = artist.tipLink;
 
-    if (artist.tipVenmo || artist.tipCashapp || artist.tipBandcamp || artist.tipSquare || artist.tipLink) {
+    const tipLinks = document.getElementById('tipLinks');
+    const tipConfigs = [
+      { key: 'tipPaypal', img: 'paypal.png', alt: 'PayPal' },
+      { key: 'tipVenmo', img: 'venmo.png', alt: 'Venmo' },
+      { key: 'tipCashapp', img: 'cash-app-logo.png', alt: 'Cash App' },
+      { key: 'tipBandcamp', img: 'bandcamp.png', alt: 'Bandcamp' },
+      { key: 'tipSquare', img: 'square.png', alt: 'Square' },
+      { key: 'tipLink', img: 'tipjar.png', alt: 'Tip Jar' }
+    ];
+    let showTips = false;
+    tipConfigs.forEach(({ key, img, alt }) => {
+      if (artist[key]) {
+        const a = document.createElement('a');
+        a.href = artist[key];
+        a.target = '_blank';
+        a.innerHTML = `<img src="/assets/${img}" alt="${alt}" />`;
+        tipLinks.appendChild(a);
+        showTips = true;
+      }
+    });
+    if (showTips) {
       document.getElementById('tipSection').style.display = 'block';
     }
 
