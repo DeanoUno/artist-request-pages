@@ -165,13 +165,6 @@ fetch(configURL)
       document.getElementById('pageBody').classList.add('default');
     }
 
-    // Tip buttons
-    if (artist.tipPaypal) document.getElementById('tipPaypal').href = artist.tipPaypal;
-    if (artist.tipVenmo) document.getElementById('tipVenmo').href = artist.tipVenmo;
-    if (artist.tipCashapp) document.getElementById('tipCashapp').href = artist.tipCashapp;
-    if (artist.tipBandcamp) document.getElementById('tipBandcamp').href = artist.tipBandcamp;
-    if (artist.tipSquare) document.getElementById('tipSquare').href = artist.tipSquare;
-    if (artist.tipLink) document.getElementById('tipLink').href = artist.tipLink;
 
     const tipLinks = document.getElementById('tipLinks');
     const tipConfigs = [
