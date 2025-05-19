@@ -201,9 +201,12 @@ fetch(configURL)
     }
     document.getElementById("sendBtn").disabled = false;
 
-    const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
-    return fetch(songListURL);
-  })
+let allSongs = [];
+let validSongs = new Set(); // ✅ Declare it at the top-level
+
+const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
+
+fetch(songListURL)
   .then(res => res.json())
   .then(rows => {
     allSongs = rows.map(row => ({
@@ -211,11 +214,11 @@ fetch(configURL)
       artist: row.artist || row.Artist || '',
       genre: row.genre || row.Genre || ''
     })).filter(song => song.title);
-    
-    const validSongs = new Set(allSongs.map(song => song.title.toLowerCase().trim()));
-    
+
+    validSongs = new Set(allSongs.map(song => song.title.toLowerCase().trim()));
+
     setupAutocomplete(document.getElementById("songSearch"), allSongs);
-  })
+  });
   .catch(err => console.error(err));
 
 function setupAutocomplete(input, data) {
@@ -294,10 +297,10 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
 
   const form = e.target;
   const songInput = form.song.value.trim().toLowerCase();
-//if (!validSongs.has(songInput)) {
- // alert("Please select a song from the dropdown list.");
- // return;
-//}
+if (!validSongs.has(songInput)) {
+  alert("Please select a song from the dropdown list.");
+  return;
+}
 
   const data = Object.fromEntries(new FormData(form).entries());
   data.ip = userIP;
