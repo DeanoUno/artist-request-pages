@@ -158,7 +158,29 @@ fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.
       logoImg.style.display = "none";
     }
 
-    document.getElementById("sendBtn").disabled = false;
+      document.getElementById("sendBtn").disabled = false;
+
+      const tipSection = document.getElementById("tipSection");
+      const tipLinks = document.getElementById("tipLinks");
+
+      let hasTips = false;
+      ["tipPaypal", "tipVenmo", "tipSquare", "tipCashapp", "tipBandcamp"].forEach(method => {
+        if (artist[method]) {
+          hasTips = true;
+          const link = document.createElement("a");
+          link.href = artist[method];
+          link.target = "_blank";
+          const img = document.createElement("img");
+          img.src = `/assets/${method}.png`;
+          img.alt = method;
+          link.appendChild(img);
+          tipLinks.appendChild(link);
+        }
+      });
+
+      if (hasTips) {
+        tipSection.style.display = "block";
+      }
 
     const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
 
