@@ -147,6 +147,30 @@
         } else {
           document.getElementById('pageBody').classList.add('default');
         }
+              // Set up tip buttons from artist config
+        if (artist.tipVenmo) {
+          document.getElementById('tipVenmo').href = artist.tipVenmo;
+        }
+        if (artist.tipCashapp) {
+          document.getElementById('tipCashapp').href = artist.tipCashapp;
+        }
+        if (artist.tipBandcamp) {
+          document.getElementById('tipBandcamp').href = artist.tipBandcamp;
+        }
+        if (artist.tipSquare) {
+          document.getElementById('tipSquare').href = artist.tipSquare;
+        }
+        if (artist.tipLink) {
+          document.getElementById('tipLink').href = artist.tipLink;
+        }
+
+        // Show tip section if any exist
+        if (
+          artist.tipVenmo || artist.tipCashapp || artist.tipBandcamp ||
+          artist.tipSquare || artist.tipLink
+        ) {
+          document.getElementById('tipSection').style.display = 'block';
+        }
 
        
         window.artistReady = true;
