@@ -192,7 +192,13 @@ fetch(configURL)
     window.artistReady = true;
     document.getElementById("artistId").value = artist.artistId;
     document.getElementById("artistName").textContent = artist.artistName;
-    if (artist.logoUrl) document.getElementById("artistLogo").src = artist.logoUrl;
+    const logoImg = document.getElementById("artistLogo");
+    if (artist.logoUrl && artist.logoUrl.trim()) {
+      logoImg.src = artist.logoUrl.trim();
+      logoImg.style.display = "block";
+    } else {
+      logoImg.style.display = "none";
+    }
     document.getElementById("sendBtn").disabled = false;
 
     const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
