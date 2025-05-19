@@ -65,6 +65,18 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* Add this below */
+.autocomplete-list {
+  position: absolute;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  max-height: 400px; /* raised from 250px */
+  overflow-y: auto;
+  z-index: 99;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
 /* Mobile-first enhancements */
 @media (max-width: 480px) {
   body {

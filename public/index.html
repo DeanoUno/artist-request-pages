@@ -210,29 +210,27 @@
         const list = document.getElementById("autocompleteList");
         list.innerHTML = '';
 
-        data
-          .filter(song =>
-            song.title.toLowerCase().includes(val) ||
-            song.artist.toLowerCase().includes(val) ||
-            song.genre.toLowerCase().includes(val)
-          )
-          .slice(0, 10)
-          .forEach(song => {
-            const item = document.createElement("div");
-            item.innerHTML = `
-              <div class="song-title">${song.title}</div>
-              <div class="song-meta">${song.artist} • ${song.genre}</div>
-            `;
-            item.classList.add("autocomplete-item");
+data
+  .filter(song =>
+    song.title.toLowerCase().includes(val) ||
+    song.artist.toLowerCase().includes(val) ||
+    song.genre.toLowerCase().includes(val)
+  )
+  .forEach(song => {
+    const item = document.createElement("div");
+    item.innerHTML = `
+      <div class="song-title">${song.title}</div>
+      <div class="song-meta">${song.artist} • ${song.genre}</div>
+    `;
+    item.classList.add("autocomplete-item");
 
-            item.addEventListener("click", function () {
-              input.value = song.title;
-              closeAllLists();
-            });
+    item.addEventListener("click", function () {
+      input.value = song.title;
+      closeAllLists();
+    });
 
-            list.appendChild(item);
-          });
-      });
+    list.appendChild(item);
+  });
 
       input.addEventListener("keydown", function (e) {
         let items = document.querySelectorAll(".autocomplete-item");
