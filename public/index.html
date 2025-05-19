@@ -64,13 +64,7 @@
       color: green;
       margin-top: 1rem;
     }
-    .debug-log {
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      background: #f9f9f9;
-      border: 1px dashed #ccc;
-      padding: 1rem;
-    }
+
     .autocomplete-list {
       position: absolute;
       border: 1px solid #ccc;
@@ -122,13 +116,10 @@
       <button id="sendBtn" type="submit" disabled>Send Request</button>
     </form>
     <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
-<div class="debug-log" id="debug" style="display: none;"></div>
+
   </div>
 
   <script>
-    const debug = document.getElementById('debug');
-    debug.style.display = 'block';
-    const log = msg => debug.innerHTML += `<div>${msg}</div>`;
 
     const params = new URLSearchParams(window.location.search);
     let artistId = params.get('artist_id') || params.get('artist') || 'deano';
