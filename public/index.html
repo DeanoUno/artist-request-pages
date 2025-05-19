@@ -144,10 +144,8 @@
 
         if (artist.themeName) {
           document.getElementById('pageBody').classList.add(artist.themeName);
-          log(`🎨 Theme applied: ${artist.themeName}`);
         } else {
           document.getElementById('pageBody').classList.add('default');
-          log('🎨 No theme specified, using default');
         }
 
        
@@ -156,7 +154,6 @@
  
         
         
-        log('✅ Artist config loaded');
         document.getElementById("artistId").value = artist.artistId;
         document.getElementById("artistName").textContent = artist.artistName;
         if (artist.logoUrl) document.getElementById("artistLogo").src = artist.logoUrl;
@@ -167,8 +164,8 @@
       })
       .then(res => res.json())
       .then(rows => {
-        log(`✅ Songs loaded. Sample: ${JSON.stringify(rows.slice(0, 2))}`);
 
+        
         allSongs = rows.map(row => ({
           title: row.title || row.Title || '',
           artist: row.artist || row.Artist || '',
@@ -178,7 +175,7 @@
         setupAutocomplete(document.getElementById("songSearch"), allSongs);
       })
       .catch(err => {
-        log(`❌ Load error: ${err.message}`);
+
         console.error(err);
       });
 
@@ -279,13 +276,13 @@ function setupAutocomplete(input, data) {
         });
 
         const result = await response.json();
-        log(`✅ Server response: ${JSON.stringify(result)}`);
+
         form.reset();
         const msg = document.getElementById('thankYouMessage');
         msg.style.display = 'block';
         setTimeout(() => msg.style.display = 'none', 5000);
       } catch (err) {
-        log(`❌ Submit error: ${err.message}`);
+
         console.error(err);
       }
     });
