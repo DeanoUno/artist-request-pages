@@ -1,5 +1,8 @@
-// submit-request.js
+const { GoogleSpreadsheet } = require('google-spreadsheet');
 const fetch = require('node-fetch');
+const creds = require('./credentials.json'); // path to your service account credentials
+
+const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
 
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
@@ -8,15 +11,13 @@ exports.handler = async function(event) {
 
   const raw = JSON.parse(event.body);
 
-  // 🔒 Sanitize helper function
   const sanitize = (str, maxLen = 300) =>
     String(str || '')
-      .replace(/[<>]/g, '') // Remove angle brackets
-      .replace(/[\u0000-\u001F\u007F]/g, '') // Remove control characters
+      .replace(/[<>]/g, '')
+      .replace(/[\u0000-\u001F\u007F]/g, '')
       .trim()
       .substring(0, maxLen);
 
-  // 🔐 Sanitize incoming fields
   const data = {
     artistId: sanitize(raw.artistId, 50),
     name: sanitize(raw.name, 50),
@@ -27,9 +28,8 @@ exports.handler = async function(event) {
     pushoverUserKey: sanitize(raw.pushoverUserKey, 50)
   };
 
-  // ✅ Ensure required fields are present after sanitization
   const required = ['song', 'artistId', 'pushoverToken', 'pushoverUserKey'];
-  const missing = required.filter(key => !data[key]);
+  const missing = required.filter(k => !data[k]);
 
   if (missing.length) {
     return {
@@ -39,6 +39,44 @@ exports.handler = async function(event) {
   }
 
   try {
+    // 🔍 Load Artist Config to get target sheet
+    const configURL = `https://opensheet.elk.sh/${CONFIG_SHEET_ID}/config`;
+    const artistConfigs = await fetch(configURL).then(res => res.json());
+    const artistRow = artistConfigs.find(row =>
+      (row.artistId || '').toLowerCase() === data.artistId.toLowerCase()
+    );
+
+    if (!artistRow || !artistRow.songListSheetId) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'Artist config not found or missing sheet ID' })
+      };
+    }
+
+    const targetSheetId = artistRow.songListSheetId;
+
+    // ✍️ Log request to the artist's Requests tab
+    const doc = new GoogleSpreadsheet(targetSheetId);
+    await doc.useServiceAccountAuth(creds);
+    await doc.loadInfo();
+
+    const sheet = doc.sheetsByTitle['Requests'];
+    if (!sheet) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Requests tab not found in artist sheet' })
+      };
+    }
+
+    await sheet.addRow({
+      timestamp: new Date().toISOString(),
+      name: data.name,
+      song: data.song,
+      note: data.note,
+      ip: data.ip
+    });
+
+    // 📲 Send Pushover notification
     await fetch('https://api.pushover.net/1/messages.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -53,12 +91,13 @@ exports.handler = async function(event) {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, message: 'Request submitted and notification sent.' })
+      body: JSON.stringify({ success: true, message: 'Request logged and notification sent' })
     };
   } catch (err) {
+    console.error('❌ Error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to send notification', details: err.message })
+      body: JSON.stringify({ error: 'Server error', detail: err.message })
     };
   }
 };
