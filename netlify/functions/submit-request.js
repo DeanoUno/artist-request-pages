@@ -1,6 +1,6 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const fetch = require('node-fetch');
-const creds = JSON.parse(process.env.GOOGLE_CREDS_SANIBEL_SONG || '{}');
+const creds = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_CONTENT || '{}');
 
 const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
 
