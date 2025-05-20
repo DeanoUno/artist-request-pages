@@ -21,6 +21,11 @@ body.dark button {
   background-color: #333;
   color: #fff;
 }
+body.dark .form-container {
+  background: #b  color: #EFEEEA;
+  color: #273f4f;
+  border: 1px solid #000000;
+}
 
 /* Coastal Theme */
 body.coastal {
