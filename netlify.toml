@@ -1,5 +1,4 @@
 [build]
-  command = "node netlify/write-creds.js"
   publish = "public"
 
 [functions]
