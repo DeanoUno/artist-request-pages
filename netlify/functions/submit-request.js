@@ -1,6 +1,6 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const fetch = require('node-fetch');
-const creds = require('./credentials.json'); // path to your service account credentials
+const creds = JSON.parse(process.env.GOOGLE_CREDS_SANIBEL_SONG);
 
 const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
 
