@@ -30,6 +30,7 @@
     "get-proto": "^1.0.1",
     "google-auth-library": "^9.15.1",
     "google-logging-utils": "^0.0.2",
+    "google-spreadsheet": "^4.1.4",
     "googleapis": "^148.0.0",
     "googleapis-common": "^7.2.0",
     "gopd": "^1.2.0",
