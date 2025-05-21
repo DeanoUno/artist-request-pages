@@ -70,11 +70,11 @@ exports.handler = async function(event) {
     }
 
     await sheet.addRow({
-      timestamp: new Date().toISOString(),
-      name: data.name,
-      song: data.song,
-      note: data.note,
-      ip: data.ip
+      Timestamp: new Date().toISOString(),
+      Name: data.name,
+      Song: data.song,
+      Note: data.note,
+      IP: data.ip
     });
     console.log('✅ Row successfully added');
 
