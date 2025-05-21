@@ -57,7 +57,10 @@ exports.handler = async function(event) {
 
     // ✍️ Log request to the artist's Requests tab
     const doc = new GoogleSpreadsheet(targetSheetId);
-    await doc.useServiceAccountAuth(creds);
+    await doc.useServiceAccountAuth({
+      client_email: creds.client_email,
+      private_key: creds.private_key
+    });
     await doc.loadInfo();
 
     const sheet = doc.sheetsByTitle['Requests'];
