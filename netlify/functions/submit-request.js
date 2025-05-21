@@ -39,7 +39,6 @@ exports.handler = async function(event) {
   }
 
   try {
-    // 🔍 Load Artist Config to get target sheet
     const configURL = `https://opensheet.elk.sh/${CONFIG_SHEET_ID}/config`;
     const artistConfigs = await fetch(configURL).then(res => res.json());
     const artistRow = artistConfigs.find(row =>
@@ -54,14 +53,13 @@ exports.handler = async function(event) {
     }
 
     const targetSheetId = artistRow.songListSheetId;
-
-    // ✍️ Log request to the artist's Requests tab
     const doc = new GoogleSpreadsheet(targetSheetId);
     await doc.useServiceAccountAuth({
       client_email: creds.client_email,
       private_key: creds.private_key
     });
     await doc.loadInfo();
+    console.log('✅ Sheet titles:', Object.keys(doc.sheetsByTitle));
 
     const sheet = doc.sheetsByTitle['Requests'];
     if (!sheet) {
@@ -78,8 +76,8 @@ exports.handler = async function(event) {
       note: data.note,
       ip: data.ip
     });
+    console.log('✅ Row successfully added');
 
-    // 📲 Send Pushover notification
     await fetch('https://api.pushover.net/1/messages.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
