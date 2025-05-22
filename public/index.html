@@ -126,11 +126,13 @@
       </div>
 
       <!-- 👇 Add this block right after -->
-      <label style="display: flex; align-items: center; margin-top: 1rem;">
-        <input type="checkbox" id="showAllSongs" style="margin-right: 0.5rem;" />
-        Show full song list
-      </label>
-      <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
+        <div style="margin-top: 1rem;">
+          <label for="showAllSongs" style="cursor: pointer; display: inline-block; font-weight: bold;">
+            Check the box to see all songs
+          </label>
+          <input type="checkbox" id="showAllSongs" style="margin-left: 0.5rem; vertical-align: middle;" />
+        </div>
+        <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
             <label for="note">Note for the Artist</label>
             <textarea name="note" id="note" rows="3"></textarea>
             <input type="hidden" name="artistId" id="artistId" />
@@ -150,9 +152,9 @@ let userIP = '';
 
 fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist'))
   .then(res => res.json())
-  .then(artist => {
-    window.artist = artist;
-    window.artistReady = true;URL
+.then(artistData => {
+  window.artist = artistData;
+  window.artistReady = true;
 
     document.getElementById("artistId").value = artist.artistId;
     document.getElementById("artistName").textContent = artist.artistName;
@@ -210,19 +212,27 @@ return fetch(songListURL);
   const fullSongList = document.getElementById('fullSongList');
 
   if (showAllToggle && fullSongList) {
-    showAllToggle.addEventListener('change', function () {
-      fullSongList.innerHTML = '';
-      if (this.checked) {
-        allSongs.forEach(song => {
-          const li = document.createElement('li');
-          li.textContent = `${song.title} – ${song.artist} (${song.genre})`;
-          fullSongList.appendChild(li);
-        });
-        fullSongList.style.display = 'block';
-      } else {
+showAllToggle.addEventListener('change', function () {
+  fullSongList.innerHTML = '';
+  if (this.checked) {
+    allSongs.forEach(song => {
+      const li = document.createElement('li');
+      li.textContent = `${song.title} – ${song.artist} (${song.genre})`;
+      li.style.cursor = 'pointer';
+      li.style.padding = '6px 0';
+      li.style.borderBottom = '1px solid #eee';
+      li.addEventListener('click', () => {
+        document.getElementById('songSearch').value = song.title;
         fullSongList.style.display = 'none';
-      }
+        showAllToggle.checked = false;
+      });
+      fullSongList.appendChild(li);
     });
+    fullSongList.style.display = 'block';
+  } else {
+    fullSongList.style.display = 'none';
+  }
+});
   }
 })
 .catch(err => console.error("Error loading config or songs:", err));
