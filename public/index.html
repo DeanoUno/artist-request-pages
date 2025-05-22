@@ -124,12 +124,19 @@
         <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
         <div id="autocompleteList" class="autocomplete-list"></div>
       </div>
-      <label for="note">Note for the Artist</label>
-      <textarea name="note" id="note" rows="3"></textarea>
-      <input type="hidden" name="artistId" id="artistId" />
-      <button id="sendBtn" type="submit" disabled>Send Request</button>
-    </form>
-    <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
+
+      <!-- 👇 Add this block right after -->
+      <label style="display: flex; align-items: center; margin-top: 1rem;">
+        <input type="checkbox" id="showAllSongs" style="margin-right: 0.5rem;" />
+        Show full song list
+      </label>
+      <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
+            <label for="note">Note for the Artist</label>
+            <textarea name="note" id="note" rows="3"></textarea>
+            <input type="hidden" name="artistId" id="artistId" />
+            <button id="sendBtn" type="submit" disabled>Send Request</button>
+          </form>
+          <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
 
 <div id="tipSection" class="tip-buttons" style="display: none;">
   <p><strong>Tips are greatly appreciated:</strong></p>
@@ -182,23 +189,43 @@ fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.
         tipSection.style.display = "block";
       }
 
-    const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
+const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
 
-    return fetch(songListURL);
-  })
-  .then(res => res.json())
-  .then(rows => {
-    allSongs = rows.map(row => ({
-      title: row.title || row.Title || '',
-      artist: row.artist || row.Artist || '',
-      genre: row.genre || row.Genre || ''
-    })).filter(song => song.title);
+return fetch(songListURL);
+})
+.then(res => res.json())
+.then(rows => {
+  allSongs = rows.map(row => ({
+    title: row.title || row.Title || '',
+    artist: row.artist || row.Artist || '',
+    genre: row.genre || row.Genre || ''
+  })).filter(song => song.title);
 
-    validSongs = new Set(allSongs.map(song => song.title.toLowerCase().trim()));
+  validSongs = new Set(allSongs.map(song => song.title.toLowerCase().trim()));
 
-    setupAutocomplete(document.getElementById("songSearch"), allSongs);
-  })
-  .catch(err => console.error("Error loading config or songs:", err));
+  setupAutocomplete(document.getElementById("songSearch"), allSongs);
+
+  // 🔽 Setup full song list display logic
+  const showAllToggle = document.getElementById('showAllSongs');
+  const fullSongList = document.getElementById('fullSongList');
+
+  if (showAllToggle && fullSongList) {
+    showAllToggle.addEventListener('change', function () {
+      fullSongList.innerHTML = '';
+      if (this.checked) {
+        allSongs.forEach(song => {
+          const li = document.createElement('li');
+          li.textContent = `${song.title} – ${song.artist} (${song.genre})`;
+          fullSongList.appendChild(li);
+        });
+        fullSongList.style.display = 'block';
+      } else {
+        fullSongList.style.display = 'none';
+      }
+    });
+  }
+})
+.catch(err => console.error("Error loading config or songs:", err));
 
 // Autocomplete setup
 function setupAutocomplete(input, data) {
