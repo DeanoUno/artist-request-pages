@@ -95,18 +95,46 @@
     .autocomplete-active {
       background-color: #e0f0ff;
     }
-    .tip-buttons {
-      display: none;
-      margin: 1.5rem 0;
-      text-align: center;
-    }
-    .tip-buttons p {
-      margin-bottom: 0.5rem;
-    }
-    .tip-buttons a img {
-      height: 80px;
-      margin: 0.5rem;
-    }
+.tip-buttons {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.tip-buttons p {
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.tip-icon-container {
+  display: inline-block;
+  width: 100px;
+  margin: 0 0.75rem;
+  text-align: center;
+}
+
+.tip-icon-container a {
+  text-decoration: none;
+}
+
+.tip-icon-container img {
+  max-height: 80px;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform 0.2s ease-in-out;
+}
+
+.tip-icon-container img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.tip-caption {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  color: #444;
+  font-weight: 500;
+  text-transform: capitalize;
+}
   </style>
 </head>
 <body id="pageBody">
@@ -170,37 +198,52 @@ fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.
 
       document.getElementById("sendBtn").disabled = false;
 
-      const tipSection = document.getElementById("tipSection");
-      const tipLinks = document.getElementById("tipLinks");
+const tipSection = document.getElementById("tipSection");
+const tipLinks = document.getElementById("tipLinks");
 
-      let hasTips = false;
+let hasTips = false;
 ["tipPaypal", "tipVenmo", "tipSquare", "tipCashapp", "tipBandcamp"].forEach(method => {
   if (artist[method]) {
     hasTips = true;
+
+    const container = document.createElement("div");
+    container.className = "tip-icon-container";
+
     const link = document.createElement("a");
     link.href = artist[method];
     link.target = "_blank";
+    link.rel = "noopener"; // protects original tab
+    link.onclick = () => {
+      setTimeout(() => {
+        window.focus(); // bring form back into focus
+      }, 500);
+    };
+
     const img = document.createElement("img");
     img.src = `/assets/${method}.png`;
     img.alt = method;
 
-    // 👇 Custom size adjustments
+    // Size adjustments
     if (method === "tipVenmo") {
-      img.style.height = "40px"; // 50% of 80px
+      img.style.height = "40px";
     } else if (method === "tipPaypal") {
-      img.style.height = "120px"; // 150% of 80px
-    } else {
-      img.style.height = "80px"; // default
+      img.style.height = "120px";
     }
 
+    const label = document.createElement("div");
+    label.className = "tip-caption";
+    label.textContent = method.replace("tip", "");
+
     link.appendChild(img);
-    tipLinks.appendChild(link);
+    container.appendChild(link);
+    container.appendChild(label);
+    tipLinks.appendChild(container);
   }
 });
 
-      if (hasTips) {
-        tipSection.style.display = "block";
-      }
+if (hasTips) {
+  tipSection.style.display = "block";
+}
 
 const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
 
