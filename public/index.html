@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -98,14 +97,14 @@
     }
     .tip-buttons {
       display: none;
-      margin-top: 2rem;
+      margin: 1.5rem 0;
       text-align: center;
     }
     .tip-buttons p {
       margin-bottom: 0.5rem;
     }
     .tip-buttons a img {
-      height: 40px;
+      height: 80px;
       margin: 0.5rem;
     }
   </style>
@@ -119,32 +118,34 @@
     <form id="requestForm">
       <label for="name">Your Name (optional)</label>
       <input name="name" id="name" />
+
+      <div id="tipSection" class="tip-buttons" style="display: none;">
+        <p><strong>Tips are gratefully accepted:</strong></p>
+        <div id="tipLinks"></div>
+      </div>
+
       <div style="position: relative;">
         <label for="songSearch">Song</label>
-        <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre or click below to see all songs." autocomplete="off" />
+        <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
         <div id="autocompleteList" class="autocomplete-list"></div>
       </div>
 
-      <!-- 👇 Add this block right after -->
-        <div style="margin-top: 1rem;">
-          <label for="showAllSongs" style="cursor: pointer; display: inline-block; font-weight: bold;">
-            Check the box to see all songs
-          </label>
-          <input type="checkbox" id="showAllSongs" style="margin-left: 0.5rem; vertical-align: middle;" />
-        </div>
-        <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
-            <label for="note">Note for the Artist</label>
-            <textarea name="note" id="note" rows="3"></textarea>
-            <input type="hidden" name="artistId" id="artistId" />
-            <button id="sendBtn" type="submit" disabled>Send Request</button>
-          </form>
-          <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
+      <div style="margin-top: 1rem;">
+        <label for="showAllSongs" style="cursor: pointer; display: inline-block; font-weight: bold;">
+          Check the box to see all songs
+        </label>
+        <input type="checkbox" id="showAllSongs" style="margin-left: 0.5rem; vertical-align: middle;" />
+      </div>
+      <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
 
-<div id="tipSection" class="tip-buttons" style="display: none;">
-  <p><strong>Tips are greatly appreciated:</strong></p>
-  <div id="tipLinks"></div>
-</div>
-  </div>
+      <label for="note">Note for the Artist</label>
+      <textarea name="note" id="note" rows="3"></textarea>
+      <input type="hidden" name="artistId" id="artistId" />
+      <button id="sendBtn" type="submit" disabled>Send Request</button>
+    </form>
+    <div class="thank-you" id="thankYouMessage">Thank you for your request!
+    </div>
+
 <script>
 let allSongs = [];
 let validSongs = new Set();
@@ -351,11 +352,10 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
   }
 });
 </script>
-<footer style="text-align: center; margin-top: 2rem; font-size: 0.9em;">
-  <p>
-    Are you a performer? <a href="/partner.html" style="color: #007bff;">Turn applause into dollars</a>
-  </p>
-</footer>
-
+  <footer style="text-align: center; margin-top: 2rem; font-size: 0.9em;">
+    <p>
+      Are you a performer? <a href="/partner.html" style="color: #007bff;">See how you can make this system work for you</a>
+    </p>
+  </footer>
 </body>
 </html>
