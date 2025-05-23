@@ -174,15 +174,29 @@ fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.
       const tipLinks = document.getElementById("tipLinks");
 
       let hasTips = false;
-      ["tipPaypal", "tipVenmo", "tipSquare", "tipCashapp", "tipBandcamp"].forEach(method => {
-        if (artist[method]) {
-          hasTips = true;
-          const link = document.createElement("a");
-          link.href = artist[method];
-          link.target = "_blank";
-          const img = document.createElement("img");
-          img.src = `/assets/${method}.png`;
-          img.alt = method;
+    ["tipPaypal", "tipVenmo", "tipSquare", "tipCashapp", "tipBandcamp"].forEach(method => {
+      if (artist[method]) {
+        hasTips = true;
+        const link = document.createElement("a");
+        link.href = artist[method];
+        link.target = "_blank";
+        const img = document.createElement("img");
+        img.src = `/assets/${method}.png`;
+        img.alt = method;
+
+        // 👇 Custom size adjustments
+        if (method === "tipVenmo") {
+          img.style.height = "40px"; // 50% of 80px
+        } else if (method === "tipPaypal") {
+          img.style.height = "120px"; // 150% of 80px
+        } else {
+          img.style.height = "80px"; // default
+        }
+
+        link.appendChild(img);
+        tipLinks.appendChild(link);
+      }
+    });
           link.appendChild(img);
           tipLinks.appendChild(link);
         }
