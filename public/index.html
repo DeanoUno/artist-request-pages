@@ -95,46 +95,40 @@
     .autocomplete-active {
       background-color: #e0f0ff;
     }
-.tip-buttons {
-  margin: 2rem 0;
-  text-align: center;
-}
+   .tip-buttons {
+      margin: 2rem 0;
+      text-align: center;
+    }
 
-.tip-buttons p {
-  margin-bottom: 1rem;
-  font-weight: bold;
-}
+    .tip-icon-container {
+      display: inline-block;
+      width: 80px;
+      margin: 0 0.5rem;
+      text-align: center;
+      vertical-align: middle;
+    }
 
-.tip-icon-container {
-  display: inline-block;
-  width: 100px;
-  margin: 0 0.75rem;
-  text-align: center;
-}
+    .tip-icon-container a {
+      text-decoration: none;
+    }
 
-.tip-icon-container a {
-  text-decoration: none;
-}
+    .tip-icon-container img {
+      height: 60px;
+      object-fit: contain;
+      display: block;
+      margin: auto;
+      transition: transform 0.2s ease-in-out;
+    }
 
-.tip-icon-container img {
-  max-height: 80px;
-  max-width: 100%;
-  object-fit: contain;
-  transition: transform 0.2s ease-in-out;
-}
+    /* Specific tweak for PayPal icon to align better */
+    .tip-icon-container img[alt="tipPaypal"] {
+      margin-bottom: -8px;
+    }
 
-.tip-icon-container img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-.tip-caption {
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-  color: #444;
-  font-weight: 500;
-  text-transform: capitalize;
-}
+    .tip-icon-container img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
   </style>
 </head>
 <body id="pageBody">
@@ -212,31 +206,22 @@ let hasTips = false;
     const link = document.createElement("a");
     link.href = artist[method];
     link.target = "_blank";
-    link.rel = "noopener"; // protects original tab
-    link.onclick = () => {
-      setTimeout(() => {
-        window.focus(); // bring form back into focus
-      }, 500);
-    };
+    link.rel = "noopener";
 
     const img = document.createElement("img");
     img.src = `/assets/${method}.png`;
     img.alt = method;
 
-    // Size adjustments
+    // Optional size tweak (if not using CSS height consistently)
     if (method === "tipVenmo") {
-      img.style.height = "40px";
+      img.style.height = "50px";
     } else if (method === "tipPaypal") {
-      img.style.height = "120px";
+      img.style.height = "60px";
+      img.style.marginBottom = "-8px"; // ⬅️ fix vertical alignment
     }
-
-    const label = document.createElement("div");
-    label.className = "tip-caption";
-    label.textContent = method.replace("tip", "");
 
     link.appendChild(img);
     container.appendChild(link);
-    container.appendChild(label);
     tipLinks.appendChild(container);
   }
 });
