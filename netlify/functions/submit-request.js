@@ -28,13 +28,10 @@ exports.handler = async function(event) {
     pushoverUserKey: sanitize(raw.pushoverUserKey, 50)
   };
 
-  const required = ['song', 'artistId', 'pushoverToken', 'pushoverUserKey'];
-  const missing = required.filter(k => !data[k]);
-
-  if (missing.length) {
+  if (!data.artistId || !data.song) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: 'Missing required fields', missing })
+      body: JSON.stringify({ error: 'Missing required fields: artistId and song are required.' })
     };
   }
 
@@ -59,7 +56,6 @@ exports.handler = async function(event) {
       private_key: creds.private_key
     });
     await doc.loadInfo();
-    console.log('✅ Sheet titles:', Object.keys(doc.sheetsByTitle));
 
     const sheet = doc.sheetsByTitle['Requests'];
     if (!sheet) {
@@ -76,24 +72,39 @@ exports.handler = async function(event) {
       Note: data.note,
       IP: data.ip
     });
-    console.log('✅ Row successfully added');
 
-    await fetch('https://api.pushover.net/1/messages.json', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        token: data.pushoverToken,
-        user: data.pushoverUserKey,
-        title: '🎵 New Song Request',
-        message: `${data.song}${data.name ? ' from ' + data.name : ''}${data.note ? '\nNote: ' + data.note : ''}`,
-        priority: 0
-      })
-    });
+    // Optional: Send Pushover notification
+    if (data.pushoverToken && data.pushoverUserKey) {
+      await fetch('https://api.pushover.net/1/messages.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          token: data.pushoverToken,
+          user: data.pushoverUserKey,
+          title: '🎵 New Song Request',
+          message: `${data.song}${data.name ? ' from ' + data.name : ''}${data.note ? '\nNote: ' + data.note : ''}`,
+          priority: 0
+        })
+      });
+    }
+
+    // Optional: Send Telegram message
+    if (artistRow.telegramChatId) {
+      await fetch('https://deano-request-page.netlify.app/.netlify/functions/send-telegram-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: artistRow.telegramChatId,
+          message: `🎵 New request: ${data.song}${data.name ? ' from ' + data.name : ''}${data.note ? '\nNote: ' + data.note : ''}`
+        })
+      });
+    }
 
     return {
       statusCode: 200,
       body: JSON.stringify({ success: true, message: 'Request logged and notification sent' })
     };
+
   } catch (err) {
     console.error('❌ Error:', err);
     return {
