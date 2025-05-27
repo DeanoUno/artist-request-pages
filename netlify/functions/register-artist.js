@@ -58,8 +58,15 @@ exports.handler = async function(event) {
 
     // STEP 1.5: Rename the tabs and add welcome tab with artist name
     const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: newSheetId });
-    const songSheetId = sheetMeta.data.sheets[0].properties.sheetId;
-    const requestSheetId = sheetMeta.data.sheets[1].properties.sheetId;
+    const songSheet = sheetMeta.data.sheets.find(s => s.properties.title === 'Songs');
+const requestSheet = sheetMeta.data.sheets.find(s => s.properties.title === 'Requests');
+
+if (!songSheet || !requestSheet) {
+  throw new Error('Songs or Requests tab not found in the copied template.');
+}
+
+const songSheetId = songSheet.properties.sheetId;
+const requestSheetId = requestSheet.properties.sheetId;
 
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId: newSheetId,
