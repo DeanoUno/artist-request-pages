@@ -1,100 +1,118 @@
-<div style="max-width: 700px; font-family: Arial, sans-serif; margin: auto; padding: 2rem; border: 1px solid #ddd; border-radius: 12px; background: #ffffff;">
-  <div style="text-align: center; margin-bottom: 1.5rem;">
-    <img src="https://sanibelsong.com/assets/rquestify-logo.png" alt="rQuestify Logo" style="max-width: 200px; height: auto;" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist Onboarding | rQuestify</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cabin', sans-serif;
+      background: #f7f7fb;
+      padding: 2rem;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: auto;
+    }
+    h1 {
+      color: #6a1b9a;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 1rem;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 2rem;
+      background: #6a1b9a;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .message {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎤 Artist Onboarding</h1>
+    <p>Let’s get you set up with rQuestify.</p>
+    <form id="onboardingForm">
+      <label for="artistName">Performer Name</label>
+      <input type="text" id="artistName" name="artistName" required />
+
+      <label for="venmo">Venmo Handle</label>
+      <input type="text" id="venmo" name="venmo" placeholder="@YourHandle" />
+
+      <label for="paypal">PayPal.me Link</label>
+      <input type="text" id="paypal" name="paypal" placeholder="https://paypal.me/yourname" />
+
+      <label for="welcomeMsg">Welcome Message</label>
+      <input type="text" id="welcomeMsg" name="welcomeMsg" placeholder="Say something to your fans..." />
+
+      <button type="submit">Submit</button>
+      <div class="message" id="responseMessage"></div>
+    </form>
   </div>
 
-  <h2 style="color: #6a1b9a;">🎤 Welcome to rQuestify!</h2>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const artistId = urlParams.get('artistId');
 
-  <p>Hey [Artist Name],</p>
+    if (!artistId) {
+      document.getElementById('onboardingForm').innerHTML = '<p style="color:red;">Missing artistId in URL. Please use the proper onboarding link.</p>';
+    }
 
-  <p>Thanks for being part of the rQuestify beta! This platform is designed to make it easier for your audience to request songs and support you in real time — right from their phones.</p>
+    document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
 
-  <p>Here’s what we need to get you set up:</p>
+      const body = {
+        artistId: artistId,
+        artistName: form.artistName.value.trim(),
+        venmo: form.venmo.value.trim(),
+        paypal: form.paypal.value.trim(),
+        welcomeMsg: form.welcomeMsg.value.trim()
+      };
 
-  <hr style="margin: 2rem 0;" />
+      const res = await fetch('/.netlify/functions/register-artist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
 
-<h3 style="color: #6a1b9a;">📌 Step 1: Connect to Telegram for Live Notifications</h3>
-<p>You’ll get an alert instantly whenever someone sends you a song request. To activate this:</p>
+      const result = await res.json();
+      const msg = document.getElementById('responseMessage');
 
-<ol>
-  <li>Click this link:  
-    <a href="https://t.me/rquestify_bot" target="_blank">https://t.me/rquestify_bot</a>
-  </li>
-  <li>Tap the <strong>“Start”</strong> button to open the chat</li>
-  <li>Send a quick message like “Hi!” — that lets our system connect to your Telegram ID</li>
-</ol>
-
-<p><strong>Note:</strong> If you don’t already have the Telegram app installed, you’ll be prompted to download it when you tap the link above. It’s free and takes less than a minute to set up.</p>
-
-<p><strong>That’s it!</strong> You’ll now receive real-time alerts when someone submits a request at your show.</p>
-
-  <h4>🔔 Enable Notifications:</h4>
-  <ul>
-    <li><strong>iPhone/iPad:</strong> Settings → Notifications → Telegram → Enable “Allow Notifications”</li>
-    <li><strong>Android:</strong> Long-press Telegram icon → App Info → Notifications → Enable</li>
-    <li><strong>Mac/Desktop:</strong> Telegram → Settings → Notifications → Turn on for Private Chats</li>
-  </ul>
-
-  <h4>🔒 Is this safe?</h4>
-  <ul>
-    <li>✅ We do not see your phone number or contacts</li>
-    <li>✅ You will not be added to any groups or spam lists</li>
-    <li>✅ You can opt out at any time by typing <code>/stop</code></li>
-  </ul>
-
-  <hr style="margin: 2rem 0;" />
-
-<h3 style="color: #6a1b9a;">🎶 Step 2: Send Us Your Song List</h3>
-<p>Please send your song list in one of the following formats:</p>
-<ul>
-  <li>✅ Google Sheet (preferred)</li>
-  <li>✅ Excel file (.xlsx or .xls)</li>
-  <li>✅ Text file (with song titles on separate lines)</li>
-</ul>
-
-<p>Your list should ideally include:</p>
-<ul>
-  <li>🎵 Song Title</li>
-  <li>🎤 Artist (if available)</li>
-  <li>🎸 Genre (optional but helpful)</li>
-</ul>
-
-<p><strong>Don’t worry if your list isn’t complete!</strong> We can help identify artist names and assign genre information for you. Just send what you have and we’ll take it from there.</p>
-
-<p>You can email your list to: <strong>info@sanibelsong.com</strong></p>
-
-  <hr style="margin: 2rem 0;" />
-
-  <h3 style="color: #6a1b9a;">🧾 Step 3: Send Us Your Details</h3>
-  <p>To personalize your page, please send:</p>
-  <ul>
-    <li>Your name / stage name</li>
-    <li>Profile picture or logo (optional)</li>
-    <li>Payment handles (Venmo, Cash App, PayPal, etc.)</li>
-    <li>Any welcome message you want fans to see</li>
-  </ul>
-<hr style="margin: 2rem 0;" />
-
-<h3 style="color: #6a1b9a;">💸 About Tips and Payment Platforms</h3>
-
-<p>rQuestify makes it easy for your fans to send you tips during your shows — but <strong>we never touch your money</strong>.</p>
-
-<ul>
-  <li>✅ Your Venmo, PayPal, Cash App, or Zelle info is displayed directly to your fans</li>
-  <li>✅ Payments go straight to you — we don’t collect or process anything</li>
-  <li>✅ We don’t have access to your account or funds</li>
-</ul>
-
-<p>If you don’t already have a tipping platform set up, we’re happy to help. Just let us know and we’ll walk you through setting up an account that’s right for you.</p>
-
-  <hr style="margin: 2rem 0;" />
-
-  <h3 style="color: #6a1b9a;">✅ What Happens Next</h3>
-  <p>Once we receive everything, we’ll create your personalized song request & tipping page and send you a preview link.</p>
-
-  <p>You’ll also get a custom QR code you can print or display at shows so fans can access your request page instantly.</p>
-
-  <p>Thanks for joining us — we’re excited to help you engage your fans and earn more with rQuestify!</p>
-
-  <p style="margin-top: 2rem;">🎸<br>– The rQuestify Team</p>
-</div>
+      if (res.ok && result.success) {
+        msg.style.color = 'green';
+        msg.textContent = '🎉 Your artist page has been set up! Next, tap “Start” on Telegram to receive real-time alerts → https://t.me/rquestify_bot';
+        form.reset();
+      } else {
+        msg.style.color = 'red';
+        msg.textContent = result.error || 'Something went wrong.';
+      }
+    });
+  </script>
+</body>
+</html>
