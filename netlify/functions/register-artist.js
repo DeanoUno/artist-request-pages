@@ -113,19 +113,25 @@ const requestSheetId = requestSheet.properties.sheetId;
     });
 
     // STEP 2: Add row to config sheet with songListSheetId
-    await sheet.addRow({
-      artistId,
-      artistName: data.artistName,
-      tipVenmo: data.venmo || '',
-      tipPaypal: data.paypal || '',
-      welcomeMsg: data.welcomeMsg || '',
-      telegramChatId: '',
-      songListSheetId: newSheetId
+    await drive.permissions.create({
+      fileId: newSheetId,
+      requestBody: {
+        role: 'writer',
+        type: 'user',
+        emailAddress: 'DuskDuo@gmail.com'
+      }
     });
+
+    await sheet.addRow({$1});
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, message: 'Artist registered, sheet created, and personalized.' })
+      body: JSON.stringify({
+        success: true,
+        message: 'Artist registered, sheet created, and personalized.',
+        sheetUrl: `https://docs.google.com/spreadsheets/d/${newSheetId}/edit`,
+        requestPage: `https://deano-request-page.netlify.app/?artist_id=${artistId}`
+      })
     };
 
   } catch (err) {
