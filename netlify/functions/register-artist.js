@@ -132,7 +132,12 @@ const requestSheetId = requestSheet.properties.sheetId;
     console.error('Registration error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server error', detail: err.message })
+      body: JSON.stringify({
+        error: 'Server error',
+        detail: err.message,
+        stack: err.stack,
+        response: err.response?.data || null
+      })
     };
   }
 };
