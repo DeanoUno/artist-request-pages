@@ -44,10 +44,10 @@ exports.handler = async function(event) {
     await sheet.addRow({
       artistId: data.artistId,
       artistName: data.artistName,
-      venmo: data.venmo || '',
-      paypal: data.paypal || '',
+      tipVenmo: data.venmo || '',
+      tipPaypal: data.paypal || '',
       welcomeMsg: data.welcomeMsg || '',
-      telegramChatId: '' // Leave blank for now — user must tap Start on Telegram bot
+      telegramChatId: ''
     });
 
     return {
