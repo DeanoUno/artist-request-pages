@@ -122,7 +122,15 @@ const requestSheetId = requestSheet.properties.sheetId;
       }
     });
 
-    await sheet.addRow({$1});
+    await sheet.addRow({
+      artistId,
+      artistName: data.artistName,
+      tipVenmo: data.venmo || '',
+      tipPaypal: data.paypal || '',
+      welcomeMsg: data.welcomeMsg || '',
+      telegramChatId: '',
+      songListSheetId: newSheetId
+    });
 
     return {
       statusCode: 200,
