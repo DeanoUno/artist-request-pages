@@ -75,44 +75,44 @@
     </form>
   </div>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const artistId = urlParams.get('artistId');
+<script>
+  document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
 
-    if (!artistId) {
-      document.getElementById('onboardingForm').innerHTML = '<p style="color:red;">Missing artistId in URL. Please use the proper onboarding link.</p>';
-    }
+    const artistName = form.artistName.value.trim();
+    const artistId = artistName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-    document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
+    const body = {
+      artistName,
+      artistId, // still required by backend validator, even though it's overridden
+      venmo: form.venmo.value.trim(),
+      paypal: form.paypal.value.trim(),
+      welcomeMsg: form.welcomeMsg.value.trim()
+    };
 
-      const body = {
-        artistId: artistId,
-        artistName: form.artistName.value.trim(),
-        venmo: form.venmo.value.trim(),
-        paypal: form.paypal.value.trim(),
-        welcomeMsg: form.welcomeMsg.value.trim()
-      };
-
-      const res = await fetch('/.netlify/functions/register-artist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      const result = await res.json();
-      const msg = document.getElementById('responseMessage');
-
-      if (res.ok && result.success) {
-        msg.style.color = 'green';
-        msg.textContent = '🎉 Your artist page has been set up! Next, tap “Start” on Telegram to receive real-time alerts → https://t.me/rquestify_bot';
-        form.reset();
-      } else {
-        msg.style.color = 'red';
-        msg.textContent = result.error || 'Something went wrong.';
-      }
+    const res = await fetch('/.netlify/functions/register-artist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
-  </script>
+
+    const result = await res.json();
+    const msg = document.getElementById('responseMessage');
+
+    if (res.ok && result.success) {
+      msg.style.color = 'green';
+      msg.innerHTML = `
+        🎉 Your artist page has been set up!<br>
+        <a href="${result.sheetUrl}" target="_blank">📄 View your Google Sheet</a><br>
+        <a href="${result.requestPage}" target="_blank">🎤 View your rQuestify Request Page</a>
+      `;
+      form.reset();
+    } else {
+      msg.style.color = 'red';
+      msg.textContent = result.error || 'Something went wrong.';
+    }
+  });
+</script>
 </body>
 </html>
