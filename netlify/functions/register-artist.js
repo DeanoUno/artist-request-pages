@@ -42,7 +42,7 @@ exports.handler = async function(event) {
 
     // Add new artist row
     await sheet.addRow({
-      artistId: data.artistId,
+      artistId: data.artistId.toLowerCase(),
       artistName: data.artistName,
       tipVenmo: data.venmo || '',
       tipPaypal: data.paypal || '',
