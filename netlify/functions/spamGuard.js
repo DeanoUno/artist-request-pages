@@ -1,31 +1,28 @@
 // spamGuard.js
 
-const ipRequestMap = new Map();
-const REQUEST_LIMIT = 3;
-const WINDOW_MINUTES = 30;
+const RATE_LIMIT_WINDOW_MINUTES = 10;
+const MAX_REQUESTS_PER_WINDOW = 3;
 
-function isSpammy(ip, requestData = {}) {
+const ipCache = {}; // In-memory cache (resets when function reloads)
+
+function isRateLimitExceeded(ip) {
   const now = Date.now();
-  const windowMs = WINDOW_MINUTES * 60 * 1000;
+  const windowMs = RATE_LIMIT_WINDOW_MINUTES * 60 * 1000;
 
-  if (!ipRequestMap.has(ip)) {
-    ipRequestMap.set(ip, { timestamps: [now], lastData: requestData });
-    return false;
+  if (!ipCache[ip]) {
+    ipCache[ip] = [];
   }
 
-  const record = ipRequestMap.get(ip);
-  const recent = record.timestamps.filter(ts => now - ts <= windowMs);
-  record.timestamps = recent;
+  // Keep only timestamps within the last X minutes
+  ipCache[ip] = ipCache[ip].filter(ts => now - ts < windowMs);
 
-  const isSameAsLast = JSON.stringify(record.lastData) === JSON.stringify(requestData);
+  // Log this new request attempt
+  ipCache[ip].push(now);
 
-  if (recent.length >= REQUEST_LIMIT && !isSameAsLast) {
-    return true;
-  }
+  console.log(`🛡️ IP ${ip} has ${ipCache[ip].length} requests in the last ${RATE_LIMIT_WINDOW_MINUTES} min.`);
 
-  record.timestamps.push(now);
-  record.lastData = requestData;
+  // ✅ For now, do NOT block. Just logging.
   return false;
 }
 
-module.exports = { isSpammy };
+module.exports = { isRateLimitExceeded };
