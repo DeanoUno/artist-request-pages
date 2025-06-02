@@ -1,39 +1,59 @@
+// ✅ Enhanced submit-request.js with built-in spam protection and logging
+
 const { google } = require('googleapis');
 const { getClient } = require('./auth');
-const fetch = require('node-fetch');
+const { sendTelegramMessage } = require('./send-telegram-message');
+const { sendPushoverNotification } = require('./send-pushover-message');
 
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-const PUSHOVER_API_TOKEN = process.env.PUSHOVER_API_TOKEN;
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const NOTIFY_TELEGRAM = true;
+const NOTIFY_PUSHOVER = true;
 
-const RATE_LIMIT_MS = 60 * 1000; // 1 minute per IP
-const recentRequests = new Map(); // { ip: { time, song } }
+const requestHistory = new Map();
+const THIRTY_MIN = 30 * 60 * 1000;
+const ONE_HOUR = 60 * 60 * 1000;
+const FULL_NIGHT = 6 * 60 * 60 * 1000; // Adjustable
+const MAX_REQUESTS_30_MIN = 2;
+const MAX_REQUESTS_HOUR = 3;
+const MAX_REQUESTS_NIGHT = 5;
 
 exports.handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+
+  const ip = event.headers['x-forwarded-for'] || 'unknown';
+  const now = Date.now();
+  let data;
+
   try {
-    if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, body: 'Method Not Allowed' };
-    }
+    data = JSON.parse(event.body);
+  } catch (err) {
+    return { statusCode: 400, body: 'Invalid request payload.' };
+  }
 
-    const data = JSON.parse(event.body);
-    const ip = event.headers['x-forwarded-for'] || 'unknown';
-    const now = Date.now();
+  // Spam Guard Checks
+  const history = requestHistory.get(ip) || [];
+  const recentHistory = history.filter(ts => now - ts < FULL_NIGHT);
 
-    const previous = recentRequests.get(ip);
-    if (
-      previous &&
-      now - previous.time < RATE_LIMIT_MS &&
-      previous.song === data.song
-    ) {
-      return {
-        statusCode: 429,
-        body: JSON.stringify({ message: 'Duplicate request too soon.' })
-      };
-    }
+  const count30min = recentHistory.filter(ts => now - ts < THIRTY_MIN).length;
+  const countHour = recentHistory.filter(ts => now - ts < ONE_HOUR).length;
 
-    // Allow and log request
-    recentRequests.set(ip, { time: now, song: data.song });
+  if (count30min >= MAX_REQUESTS_30_MIN) {
+    return { statusCode: 429, body: JSON.stringify({ message: '⏳ Too many requests in 30 minutes.' }) };
+  }
+  if (countHour >= MAX_REQUESTS_HOUR) {
+    return { statusCode: 429, body: JSON.stringify({ message: '⏳ Too many requests in 1 hour.' }) };
+  }
+  if (recentHistory.length >= MAX_REQUESTS_NIGHT) {
+    return { statusCode: 429, body: JSON.stringify({ message: '🛑 Max requests reached for the night.' }) };
+  }
 
+  // Log this request
+  recentHistory.push(now);
+  requestHistory.set(ip, recentHistory);
+
+  try {
     const auth = await getClient();
     const sheets = google.sheets({ version: 'v4', auth });
 
@@ -53,44 +73,23 @@ exports.handler = async (event) => {
       }
     });
 
-    // Pushover notification
-    if (data.pushoverUserKey && PUSHOVER_API_TOKEN) {
-      await fetch('https://api.pushover.net/1/messages.json', {
-        method: 'POST',
-        body: new URLSearchParams({
-          token: PUSHOVER_API_TOKEN,
-          user: data.pushoverUserKey,
-          message: `🎵 ${data.song}\n📝 ${data.note || ''}`,
-          title: `🎤 Song Request from ${data.artistId || 'Fan'}`
-        })
-      });
+    if (NOTIFY_TELEGRAM) {
+      await sendTelegramMessage(data.artistId, `🎵 New request: ${data.song || 'Unknown'}\n📝 Note: ${data.note || '—'}`);
     }
 
-    // Telegram notification
-    if (data.telegramChatId && TELEGRAM_BOT_TOKEN) {
-      const message = `🎵 Song: ${data.song}\n📝 Note: ${data.note || ''}`;
-      await fetch(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: data.telegramChatId,
-            text: message
-          })
-        }
-      );
+    if (NOTIFY_PUSHOVER) {
+      await sendPushoverNotification(data.artistId, data.song, data.note);
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Request logged and notified.' })
+      body: JSON.stringify({ message: '✅ Request submitted successfully.' })
     };
-  } catch (err) {
-    console.error('ERROR', err);
+  } catch (error) {
+    console.error('Logging or notification failed:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Server error', detail: err.message })
+      body: JSON.stringify({ message: '❌ Internal error logging the request.' })
     };
   }
 };
