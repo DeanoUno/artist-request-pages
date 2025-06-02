@@ -1,135 +1,96 @@
 const { google } = require('googleapis');
 const { getClient } = require('./auth');
-const { isSpammy } = require('./spamGuard');
-const https = require('https');
+const fetch = require('node-fetch');
 
-function sanitize(str, maxLength = 100) {
-  return String(str || '').trim().substring(0, maxLength);
-}
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+const PUSHOVER_API_TOKEN = process.env.PUSHOVER_API_TOKEN;
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-exports.handler = async function (event) {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
+const RATE_LIMIT_MS = 60 * 1000; // 1 minute per IP
+const recentRequests = new Map(); // { ip: { time, song } }
 
-  let raw;
+exports.handler = async (event) => {
   try {
-    raw = JSON.parse(event.body);
-  } catch {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
-  }
+    if (event.httpMethod !== 'POST') {
+      return { statusCode: 405, body: 'Method Not Allowed' };
+    }
 
-  const data = {
-    artistId: sanitize(raw.artistId, 50),
-    name: sanitize(raw.name, 50),
-    song: sanitize(raw.song, 150),
-    note: sanitize(raw.note, 300),
-    ip: sanitize(raw.ip, 45),
-    pushoverToken: sanitize(raw.pushoverToken, 50),
-    pushoverUserKey: sanitize(raw.pushoverUserKey, 50),
-    telegramChatId: sanitize(raw.telegramChatId, 50)
-  };
+    const data = JSON.parse(event.body);
+    const ip = event.headers['x-forwarded-for'] || 'unknown';
+    const now = Date.now();
 
-  if (!data.artistId || !data.song) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing required fields: artistId and song are required.' })
-    };
-  }
+    const previous = recentRequests.get(ip);
+    if (
+      previous &&
+      now - previous.time < RATE_LIMIT_MS &&
+      previous.song === data.song
+    ) {
+      return {
+        statusCode: 429,
+        body: JSON.stringify({ message: 'Duplicate request too soon.' })
+      };
+    }
 
-  // 🛡 Spam guard
-  if (isSpammy(data.ip, { artistId: data.artistId, song: data.song, note: data.note })) {
-    return {
-      statusCode: 429,
-      body: JSON.stringify({ error: 'Too many requests. Please wait a bit before trying again.' })
-    };
-  }
+    // Allow and log request
+    recentRequests.set(ip, { time: now, song: data.song });
 
-  try {
-    const client = await getClient();
-    const sheets = google.sheets({ version: 'v4', auth: client });
-
-    const sheetId = process.env.REQUEST_LOG_SHEET_ID;
-    const sheetName = data.artistId || 'log';
-    const timestamp = new Date().toISOString();
-
-    const row = [timestamp, data.ip, data.name, data.song, data.note];
+    const auth = await getClient();
+    const sheets = google.sheets({ version: 'v4', auth });
 
     await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: `${sheetName}!A1`,
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'requests!A1',
       valueInputOption: 'RAW',
-      requestBody: { values: [row] }
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: {
+        values: [[
+          new Date().toISOString(),
+          data.artistId || '',
+          data.song || '',
+          data.note || '',
+          ip
+        ]]
+      }
     });
 
-    // 📣 Pushover Notification
-    if (data.pushoverToken && data.pushoverUserKey) {
-      const msg = `${data.name || 'Someone'} requested 🎶 ${data.song}`;
-      const note = data.note ? `\nNote: ${data.note}` : '';
-      const pushoverBody = `token=${data.pushoverToken}&user=${data.pushoverUserKey}&message=${encodeURIComponent(msg + note)}`;
-
-      await fetchPushover(pushoverBody);
+    // Pushover notification
+    if (data.pushoverUserKey && PUSHOVER_API_TOKEN) {
+      await fetch('https://api.pushover.net/1/messages.json', {
+        method: 'POST',
+        body: new URLSearchParams({
+          token: PUSHOVER_API_TOKEN,
+          user: data.pushoverUserKey,
+          message: `🎵 ${data.song}\n📝 ${data.note || ''}`,
+          title: `🎤 Song Request from ${data.artistId || 'Fan'}`
+        })
+      });
     }
 
-    // 📣 Telegram Notification
-    if (data.telegramChatId && process.env.TELEGRAM_BOT_TOKEN) {
-      const text = `🎶 *${data.song}* requested by *${data.name || 'Someone'}*` +
-                   (data.note ? `\n💬 ${data.note}` : '');
-      await sendTelegramMessage(process.env.TELEGRAM_BOT_TOKEN, data.telegramChatId, text);
+    // Telegram notification
+    if (data.telegramChatId && TELEGRAM_BOT_TOKEN) {
+      const message = `🎵 Song: ${data.song}\n📝 Note: ${data.note || ''}`;
+      await fetch(
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: data.telegramChatId,
+            text: message
+          })
+        }
+      );
     }
 
-    return { statusCode: 200, body: JSON.stringify({ success: true }) };
-
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Request logged and notified.' })
+    };
   } catch (err) {
-    console.error('Logging or notification failed:', err);
-    return { statusCode: 500, body: JSON.stringify({ error: 'Internal error' }) };
+    console.error('ERROR', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Server error', detail: err.message })
+    };
   }
 };
-
-// 🔔 Pushover Helper
-function fetchPushover(body) {
-  return new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: 'api.pushover.net',
-      path: '/1/messages.json',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(body)
-      }
-    }, res => {
-      res.on('data', () => {});
-      res.on('end', resolve);
-    });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
-  });
-}
-
-// 🔔 Telegram Helper
-function sendTelegramMessage(botToken, chatId, text) {
-  return new Promise((resolve, reject) => {
-    const payload = JSON.stringify({
-      chat_id: chatId,
-      text: text,
-      parse_mode: 'Markdown'
-    });
-
-    const req = https.request({
-      hostname: 'api.telegram.org',
-      path: `/bot${botToken}/sendMessage`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload)
-      }
-    }, res => {
-      res.on('data', () => {});
-      res.on('end', resolve);
-    });
-    req.on('error', reject);
-    req.write(payload);
-    req.end();
-  });
-}
