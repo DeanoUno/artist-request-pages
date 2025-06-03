@@ -1,95 +1,130 @@
-// ✅ Enhanced submit-request.js with built-in spam protection and logging
+const { GoogleSpreadsheet } = require('google-spreadsheet');
+const fetch = require('node-fetch');
+const creds = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_CONTENT || '{}');
 
-const { google } = require('googleapis');
-const { getClient } = require('./auth');
-const { sendTelegramMessage } = require('./send-telegram-message');
-const { sendPushoverNotification } = require('./send-pushover-message');
+const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
 
-const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-const NOTIFY_TELEGRAM = true;
-const NOTIFY_PUSHOVER = true;
-
-const requestHistory = new Map();
-const THIRTY_MIN = 30 * 60 * 1000;
-const ONE_HOUR = 60 * 60 * 1000;
-const FULL_NIGHT = 6 * 60 * 60 * 1000; // Adjustable
-const MAX_REQUESTS_30_MIN = 2;
-const MAX_REQUESTS_HOUR = 3;
-const MAX_REQUESTS_NIGHT = 5;
-
-exports.handler = async (event) => {
+exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const ip = event.headers['x-forwarded-for'] || 'unknown';
-  const now = Date.now();
-  let data;
+  const raw = JSON.parse(event.body);
+
+  const sanitize = (str, maxLen = 300) =>
+    String(str || '')
+      .replace(/[<>]/g, '')
+      .replace(/[\u0000-\u001F\u007F]/g, '')
+      .trim()
+      .substring(0, maxLen);
+
+  const data = {
+    artistId: sanitize(raw.artistId, 50),
+    name: sanitize(raw.name, 50),
+    song: sanitize(raw.song, 150),
+    note: sanitize(raw.note, 300),
+    ip: sanitize(raw.ip, 45),
+    pushoverToken: sanitize(raw.pushoverToken, 50),
+    pushoverUserKey: sanitize(raw.pushoverUserKey, 50)
+  };
+
+  if (!data.artistId || !data.song) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing required fields: artistId and song are required.' })
+    };
+  }
 
   try {
-    data = JSON.parse(event.body);
-  } catch (err) {
-    return { statusCode: 400, body: 'Invalid request payload.' };
-  }
+    const configURL = `https://opensheet.elk.sh/${CONFIG_SHEET_ID}/config`;
+    const artistConfigs = await fetch(configURL).then(res => res.json());
+    const artistRow = artistConfigs.find(row =>
+      (row.artistId || '').toLowerCase() === data.artistId.toLowerCase()
+    );
 
-  // Spam Guard Checks
-  const history = requestHistory.get(ip) || [];
-  const recentHistory = history.filter(ts => now - ts < FULL_NIGHT);
-
-  const count30min = recentHistory.filter(ts => now - ts < THIRTY_MIN).length;
-  const countHour = recentHistory.filter(ts => now - ts < ONE_HOUR).length;
-
-  if (count30min >= MAX_REQUESTS_30_MIN) {
-    return { statusCode: 429, body: JSON.stringify({ message: '⏳ Too many requests in 30 minutes.' }) };
-  }
-  if (countHour >= MAX_REQUESTS_HOUR) {
-    return { statusCode: 429, body: JSON.stringify({ message: '⏳ Too many requests in 1 hour.' }) };
-  }
-  if (recentHistory.length >= MAX_REQUESTS_NIGHT) {
-    return { statusCode: 429, body: JSON.stringify({ message: '🛑 Max requests reached for the night.' }) };
-  }
-
-  // Log this request
-  recentHistory.push(now);
-  requestHistory.set(ip, recentHistory);
-
-  try {
-    const auth = await getClient();
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'requests!A1',
-      valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: {
-        values: [[
-          new Date().toISOString(),
-          data.artistId || '',
-          data.song || '',
-          data.note || '',
-          ip
-        ]]
-      }
-    });
-
-    if (NOTIFY_TELEGRAM) {
-      await sendTelegramMessage(data.artistId, `🎵 New request: ${data.song || 'Unknown'}\n📝 Note: ${data.note || '—'}`);
+    if (!artistRow) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'Artist config not found' })
+      };
     }
 
-    if (NOTIFY_PUSHOVER) {
-      await sendPushoverNotification(data.artistId, data.song, data.note);
+    // 📝 Try logging to the Requests tab
+    let sheetError = null;
+    try {
+      const doc = new GoogleSpreadsheet(artistRow.songListSheetId);
+      await doc.useServiceAccountAuth({
+        client_email: creds.client_email,
+        private_key: creds.private_key
+      });
+      await doc.loadInfo();
+
+      const sheet = doc.sheetsByTitle['Requests'];
+      if (sheet) {
+        await sheet.addRow({
+          Timestamp: new Date().toISOString(),
+          Name: data.name,
+          Song: data.song,
+          Note: data.note,
+          IP: data.ip
+        });
+      } else {
+        sheetError = 'Requests tab not found in sheet';
+      }
+    } catch (err) {
+      sheetError = 'Logging failed: ' + err.message;
+      console.error('Logging error:', err);
+    }
+
+    // 🔔 Send Pushover notification (if available)
+    if (data.pushoverToken && data.pushoverUserKey) {
+      try {
+        await fetch('https://api.pushover.net/1/messages.json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            token: data.pushoverToken,
+            user: data.pushoverUserKey,
+            title: '🎵 New Song Request',
+            message: `${data.song}${data.name ? ' from ' + data.name : ''}${data.note ? '\nNote: ' + data.note : ''}`,
+            priority: 0
+          })
+        });
+      } catch (err) {
+        console.error('Pushover error:', err);
+      }
+    }
+
+    // 💬 Send Telegram message (if available)
+    if (artistRow.telegramChatId) {
+      try {
+        await fetch('https://deano-request-page.netlify.app/.netlify/functions/send-telegram-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: artistRow.telegramChatId,
+            message: `🎵 New request: ${data.song}${data.name ? ' from ' + data.name : ''}${data.note ? '\nNote: ' + data.note : ''}`
+          })
+        });
+      } catch (err) {
+        console.error('Telegram error:', err);
+      }
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: '✅ Request submitted successfully.' })
+      body: JSON.stringify({
+        success: true,
+        message: 'Request processed',
+        sheetLogStatus: sheetError ? `Warning: ${sheetError}` : 'Logged successfully'
+      })
     };
-  } catch (error) {
-    console.error('Logging or notification failed:', error);
+
+  } catch (err) {
+    console.error('❌ Fatal error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: '❌ Internal error logging the request.' })
+      body: JSON.stringify({ error: 'Server error', detail: err.message })
     };
   }
 };
