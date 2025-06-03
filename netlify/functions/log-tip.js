@@ -16,7 +16,7 @@ exports.handler = async (event) => {
     }
 
     // ✅ Load credentials from file
-    const keyPath = path.join(__dirname, 'service-account.json');
+    const keyPath = path.join(__dirname, 'secrets', 'service-account.json');
     const credentials = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
 
     const auth = new GoogleAuth({
