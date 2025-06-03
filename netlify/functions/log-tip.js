@@ -73,6 +73,37 @@ exports.handler = async (event) => {
         values: [[logTime, method]],
       },
     });
+    // Send Pushover notification if user key and API token are present
+if (pushoverUserKey && process.env.PUSHOVER_API_TOKEN) {
+  const pushoverMessage = {
+    token: process.env.PUSHOVER_API_TOKEN,
+    user: pushoverUserKey,
+    message: `Someone clicked the ${method} tip button! 💸`,
+    title: `New Tip Activity`,
+    priority: 0,
+  };
+
+  await fetch('https://api.pushover.net/1/messages.json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pushoverMessage),
+  });
+}
+
+// Send Telegram notification if chat ID and bot token are present
+if (telegramChatId && process.env.TELEGRAM_BOT_TOKEN) {
+  const telegramMessage = `🎶 Someone clicked the ${method} tip button!`;
+
+  await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: telegramChatId,
+      text: telegramMessage,
+    }),
+  });
+}
+
 
     return {
       statusCode: 200,
