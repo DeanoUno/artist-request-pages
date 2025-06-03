@@ -1,9 +1,11 @@
 const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
+const path = require('path');
+const fs = require('fs');
 
-// Config values
+// Config constants
 const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
-const CONFIG_TAB_NAME = 'Config'; // Update if yours is named differently
+const CONFIG_TAB_NAME = 'Config';
 const TIP_LOG_TAB_NAME = 'Tip Log';
 
 exports.handler = async (event) => {
@@ -18,13 +20,24 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: 'Missing artistId or method' };
     }
 
+    // Path to your service account key file
+    const keyFilePath = path.join(__dirname, 'service-account.json');
+
+    if (!fs.existsSync(keyFilePath)) {
+      return {
+        statusCode: 500,
+        body: 'Service account credentials file not found.',
+      };
+    }
+
     const auth = new GoogleAuth({
+      keyFile: keyFilePath,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
     const sheets = google.sheets({ version: 'v4', auth: await auth.getClient() });
 
-    // Step 1: Get the config sheet
+    // Get config sheet rows
     const configResp = await sheets.spreadsheets.values.get({
       spreadsheetId: CONFIG_SHEET_ID,
       range: `${CONFIG_TAB_NAME}!A1:Z`,
@@ -35,18 +48,17 @@ exports.handler = async (event) => {
     const artistIdIndex = headers.indexOf('artistId');
     const sheetIdIndex = headers.indexOf('songListSheetId');
 
-    const row = rows.find((r) => r[artistIdIndex] === artistId);
-    if (!row) {
+    const artistRow = rows.find((r) => r[artistIdIndex] === artistId);
+    if (!artistRow) {
       return { statusCode: 404, body: `Artist ID ${artistId} not found` };
     }
 
-    const artistSheetId = row[sheetIdIndex];
-
+    const artistSheetId = artistRow[sheetIdIndex];
     if (!artistSheetId) {
       return { statusCode: 404, body: `Sheet ID missing for artist ${artistId}` };
     }
 
-    // Step 2: Append to Tip Log
+    // Append to the "Tip Log" tab
     const now = timestamp || new Date().toISOString();
     const appendResp = await sheets.spreadsheets.values.append({
       spreadsheetId: artistSheetId,
