@@ -3,11 +3,6 @@ const { GoogleAuth } = require('google-auth-library');
 const path = require('path');
 const fs = require('fs');
 
-// Config constants
-const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
-const CONFIG_TAB_NAME = 'Config';
-const TIP_LOG_TAB_NAME = 'Tip Log';
-
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -20,22 +15,17 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: 'Missing artistId or method' };
     }
 
-    // Path to your service account key file
-    const keyFilePath = path.join(__dirname, 'service-account.json');
-
-    if (!fs.existsSync(keyFilePath)) {
-      return {
-        statusCode: 500,
-        body: 'Service account credentials file not found.',
-      };
-    }
+    // ✅ Load credentials from file
+    const keyPath = path.join(__dirname, 'service-account.json');
+    const credentials = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
 
     const auth = new GoogleAuth({
-      keyFile: keyFilePath,
+      credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
     const sheets = google.sheets({ version: 'v4', auth: await auth.getClient() });
+
 
     // Get config sheet rows
     const configResp = await sheets.spreadsheets.values.get({
