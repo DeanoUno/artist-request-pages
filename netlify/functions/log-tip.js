@@ -2,8 +2,10 @@ const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
 const path = require('path');
 const fs = require('fs');
-const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c'; // Artist Config Sheet
+
+const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c'; // Artist Config Sheet ID
 const CONFIG_TAB_NAME = 'Config';
+const TIP_LOG_TAB_NAME = 'Tip Log';
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -17,7 +19,7 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: 'Missing artistId or method' };
     }
 
-    // ✅ Load credentials from file
+    // Load credentials from file
     const keyPath = path.join(__dirname, 'secrets', 'service-account.json');
     const credentials = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
 
@@ -26,50 +28,61 @@ exports.handler = async (event) => {
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    const sheets = google.sheets({ version: 'v4', auth: await auth.getClient() });
+    const sheets = google.sheets({ version: 'v4', auth });
 
-
-    // Get config sheet rows
-    const configResp = await sheets.spreadsheets.values.get({
+    // Retrieve header row to find column indices
+    const headerResp = await sheets.spreadsheets.values.get({
       spreadsheetId: CONFIG_SHEET_ID,
-      range: `${CONFIG_TAB_NAME}!A1:Z`,
+      range: `${CONFIG_TAB_NAME}!A1:Z1`,
     });
 
-    const rows = configResp.data.values;
-    const headers = rows[0];
-    const artistIdIndex = headers.indexOf('artistId');
-    const sheetIdIndex = headers.indexOf('songListSheetId');
+    const headers = headerResp.data.values[0];
+    const artistIdCol = headers.indexOf('artistId');
+    const songListSheetIdCol = headers.indexOf('songListSheetId');
+    const telegramChatIdCol = headers.indexOf('telegramChatId');
+    const pushoverUserKeyCol = headers.indexOf('pushoverUserKey');
 
-    const artistRow = rows.find((r) => r[artistIdIndex] === artistId);
+    if (artistIdCol === -1 || songListSheetIdCol === -1) {
+      return { statusCode: 500, body: 'Required columns not found in header row' };
+    }
+
+    // Retrieve data rows
+    const configResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: CONFIG_SHEET_ID,
+      range: `${CONFIG_TAB_NAME}!A2:Z`,
+    });
+
+    const rows = configResp.data.values || [];
+    const artistRow = rows.find(row => row[artistIdCol] === artistId);
+
     if (!artistRow) {
-      return { statusCode: 404, body: `Artist ID ${artistId} not found` };
+      return { statusCode: 404, body: `Artist ${artistId} not found in config` };
     }
 
-    const artistSheetId = artistRow[sheetIdIndex];
-    if (!artistSheetId) {
-      return { statusCode: 404, body: `Sheet ID missing for artist ${artistId}` };
-    }
+    const tipSheetId = artistRow[songListSheetIdCol];
+    const telegramChatId = telegramChatIdCol !== -1 ? artistRow[telegramChatIdCol] : null;
+    const pushoverUserKey = pushoverUserKeyCol !== -1 ? artistRow[pushoverUserKeyCol] : null;
 
-    // Append to the "Tip Log" tab
-    const now = timestamp || new Date().toISOString();
+    // Log to Tip Log tab
+    const logTime = timestamp || new Date().toISOString();
     const appendResp = await sheets.spreadsheets.values.append({
-      spreadsheetId: artistSheetId,
+      spreadsheetId: tipSheetId,
       range: `${TIP_LOG_TAB_NAME}!A1`,
       valueInputOption: 'USER_ENTERED',
       requestBody: {
-        values: [[now, method]],
+        values: [[logTime, method]],
       },
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Tip logged successfully', appendResp }),
+      body: JSON.stringify({
+        message: 'Tip logged successfully',
+        appendResp: appendResp.data,
+      }),
     };
-  } catch (err) {
-    console.error('Error logging tip:', err);
-    return {
-      statusCode: 500,
-      body: `Internal Server Error: ${err.message}`,
-    };
+  } catch (error) {
+    console.error('Error logging tip:', error);
+    return { statusCode: 500, body: `Internal Server Error: ${error.message}` };
   }
 };
