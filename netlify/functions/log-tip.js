@@ -2,6 +2,8 @@ const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
 const path = require('path');
 const fs = require('fs');
+const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c'; // Artist Config Sheet
+const CONFIG_TAB_NAME = 'Config';
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
