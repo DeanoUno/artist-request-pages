@@ -208,6 +208,21 @@ let hasTips = false;
     link.target = "_blank";
     link.rel = "noopener";
 
+    // ⬇️ Add log-tip fetch when clicked
+    link.addEventListener('click', () => {
+      const artistId = window.artist?.artistId || 'unknown';
+      fetch('/.netlify/functions/log-tip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          artistId,
+          method: method.replace(/^tip/, '')  // strip 'tip' prefix, e.g., 'Venmo'
+        })
+      }).catch(err => {
+        console.error('Tip log failed:', err);
+      });
+    });
+
     const img = document.createElement("img");
     img.src = `/assets/${method}.png`;
     img.alt = method;

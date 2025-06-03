@@ -1,57 +1,71 @@
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const fetch = require('node-fetch');
+const { google } = require('googleapis');
+const { GoogleAuth } = require('google-auth-library');
+
+// Config values
+const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
+const CONFIG_TAB_NAME = 'Config'; // Update if yours is named differently
+const TIP_LOG_TAB_NAME = 'Tip Log';
 
 exports.handler = async (event) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+
   try {
-    const { artistId, tipMethod, timestamp } = JSON.parse(event.body);
+    const { artistId, method, timestamp } = JSON.parse(event.body);
 
-    // Load artist config
-    const configRes = await fetch(`https://opensheet.elk.sh/14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c/config`);
-    const artists = await configRes.json();
-    const artist = artists.find(a => a.artistId === artistId);
-    if (!artist || !artist.tipLogSheetId) throw new Error('Artist config not found or missing tipLogSheetId');
-
-    // Authenticate with Google Sheets
-    const doc = new GoogleSpreadsheet(artist.tipLogSheetId);
-    await doc.useServiceAccountAuth({
-      client_email: process.env.GS_CLIENT_EMAIL,
-      private_key: process.env.GS_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    });
-    await doc.loadInfo();
-
-    const sheet = doc.sheetsByTitle['Tips'] || (await doc.addSheet({ title: 'Tips', headerValues: ['Timestamp', 'Method'] }));
-    await sheet.addRow({ Timestamp: timestamp, Method: tipMethod });
-
-    // Telegram or Pushover notification
-    const message = `🎁 Someone clicked the ${tipMethod} tip button for ${artist.displayName}`;
-    if (artist.telegramChatId) {
-      await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: artist.telegramChatId,
-          text: message,
-        }),
-      });
-    } else if (artist.pushoverUserKey) {
-      await fetch('https://api.pushover.net/1/messages.json', {
-        method: 'POST',
-        body: new URLSearchParams({
-          token: process.env.PUSHOVER_API_TOKEN,
-          user: artist.pushoverUserKey,
-          message: message,
-        }),
-      });
+    if (!artistId || !method) {
+      return { statusCode: 400, body: 'Missing artistId or method' };
     }
+
+    const auth = new GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth: await auth.getClient() });
+
+    // Step 1: Get the config sheet
+    const configResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: CONFIG_SHEET_ID,
+      range: `${CONFIG_TAB_NAME}!A1:Z`,
+    });
+
+    const rows = configResp.data.values;
+    const headers = rows[0];
+    const artistIdIndex = headers.indexOf('artistId');
+    const sheetIdIndex = headers.indexOf('songListSheetId');
+
+    const row = rows.find((r) => r[artistIdIndex] === artistId);
+    if (!row) {
+      return { statusCode: 404, body: `Artist ID ${artistId} not found` };
+    }
+
+    const artistSheetId = row[sheetIdIndex];
+
+    if (!artistSheetId) {
+      return { statusCode: 404, body: `Sheet ID missing for artist ${artistId}` };
+    }
+
+    // Step 2: Append to Tip Log
+    const now = timestamp || new Date().toISOString();
+    const appendResp = await sheets.spreadsheets.values.append({
+      spreadsheetId: artistSheetId,
+      range: `${TIP_LOG_TAB_NAME}!A1`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [[now, method]],
+      },
+    });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true }),
+      body: JSON.stringify({ message: 'Tip logged successfully', appendResp }),
     };
   } catch (err) {
+    console.error('Error logging tip:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
+      body: `Internal Server Error: ${err.message}`,
     };
   }
 };
