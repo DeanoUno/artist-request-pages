@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 module.exports = async function sendPushoverTip(userKey, message) {
-  const token = process.env.PUSHOVER_API_TOKEN;
+const token = process.env.PUSHOVER_TIP_API_TOKEN;
 
   console.log('🔑 Pushover token in tip script:', token);
   console.log('👤 User key in tip script:', userKey);
