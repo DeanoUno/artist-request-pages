@@ -4,6 +4,4 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-
-[functions."submit-request"]
   included_files = ["netlify/functions/secrets/service-account.json"]
