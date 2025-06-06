@@ -147,18 +147,19 @@
       </div>
 
       <div style="position: relative;">
-        <label for="songSearch">Search
-
-        </label>
+        <label for="songSearch">Search</label>
         <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
         <div id="autocompleteList" class="autocomplete-list"></div>
       </div>
 
       <div style="margin-top: 1rem;">
-
+        <label for="showAllSongs" style="cursor: pointer; font-weight: bold; display: block; margin-bottom: 0.25rem;">
+          Or see all songs
+        </label>
         
         <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.95em;">
-          Check box to show all songs
+          <input type="checkbox" id="showAllSongs" style="width: 0.9em; height: 0.9em; margin: 0;" />
+          Show full song list
         </label>
 
         <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
