@@ -2,6 +2,7 @@ const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
 const path = require('path');
 const fs = require('fs');
+const sendPushoverTip = require('./send-pushover-tip');
 
 const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c'; // Artist Config Sheet ID
 const CONFIG_TAB_NAME = 'Config';
@@ -63,30 +64,33 @@ exports.handler = async (event) => {
     const telegramChatId = telegramChatIdCol !== -1 ? artistRow[telegramChatIdCol] : null;
     const pushoverUserKey = pushoverUserKeyCol !== -1 ? artistRow[pushoverUserKeyCol] : null;
 
-    // Log to Tip Log tab
-    const logTime = timestamp || new Date().toISOString();
-    const appendResp = await sheets.spreadsheets.values.append({
-      spreadsheetId: tipSheetId,
-      range: `${TIP_LOG_TAB_NAME}!A1`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [[logTime, method]],
-      },
-    });
-    // Send Pushover notification if user key and API token are present
-if (pushoverUserKey && process.env.PUSHOVER_API_TOKEN) {
-  const pushoverMessage = {
-    token: process.env.PUSHOVER_API_TOKEN,
-    user: pushoverUserKey,
-    message: `Someone clicked the ${method} tip button! 💸`,
-    title: `New Tip Activity`,
-    priority: 0,
-  };
+// Log to Tip Log tab
+const logTime = timestamp || new Date().toISOString();
+const appendResp = await sheets.spreadsheets.values.append({
+  spreadsheetId: tipSheetId,
+  range: `${TIP_LOG_TAB_NAME}!A1`,
+  valueInputOption: 'USER_ENTERED',
+  requestBody: {
+    values: [[logTime, method]],
+  },
+});
 
-  await fetch('https://api.pushover.net/1/messages.json', {
+// ✅ Send Pushover notification if user key and API token are present
+if (pushoverUserKey && process.env.PUSHOVER_API_TOKEN) {
+  await sendPushoverTip(pushoverUserKey, `💰 You got a new tip via ${method}!`);
+}
+
+// ✅ Send Telegram notification if chat ID and bot token are present
+if (telegramChatId && process.env.TELEGRAM_BOT_TOKEN) {
+  const telegramMessage = `🎶 Someone clicked the ${method} tip button!`;
+
+  await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(pushoverMessage),
+    body: JSON.stringify({
+      chat_id: telegramChatId,
+      text: telegramMessage,
+    }),
   });
 }
 

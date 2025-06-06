@@ -153,13 +153,17 @@
       </div>
 
       <div style="margin-top: 1rem;">
-        <label for="showAllSongs" style="cursor: pointer; display: inline-block; font-weight: bold;">
+        <label for="showAllSongs" style="cursor: pointer; font-weight: bold; display: block; margin-bottom: 0.25rem;">
           Check the box to see all songs
         </label>
-      <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.95em;">
-        <input type="checkbox" id="showAllSongs" style="width: 1em; height: 1em; margin: 0;" />
-        Show full song list
-      </label>
+        
+        <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.95em;">
+          <input type="checkbox" id="showAllSongs" style="width: 0.9em; height: 0.9em; margin: 0;" />
+          Show full song list
+        </label>
+
+        <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
+      </div>
 
       <label for="note">Note for the Artist <span style="font-weight: normal;">(e.g., birthday, anniversary, special request)</span></label>
       <textarea name="note" id="note" rows="3" placeholder="Optional: Let us know if you're celebrating something special or have a dedication!"></textarea>
@@ -391,16 +395,39 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
   data.pushoverUserKey = artist.pushoverUserKey;
 
   try {
-    const response = await fetch('/.netlify/functions/submit-request', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    const result = await response.json();
-    form.reset();
+const response = await fetch('/.netlify/functions/submit-request', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data)
+});
+ // 🔒 Disable the send button to prevent accidental double-click
+    document.getElementById('sendBtn').disabled = true;
+    setTimeout(() => {
+      document.getElementById('sendBtn').disabled = false;
+    }, 5000);
+
     const msg = document.getElementById('thankYouMessage');
-    msg.style.display = 'block';
-    setTimeout(() => msg.style.display = 'none', 5000);
+
+if (response.status === 429) {
+  // Rate limit hit
+  const msg = document.getElementById('thankYouMessage');
+  msg.textContent = "⏳ You've reached the request limit. Please wait a little while and try again.";
+  msg.style.color = 'red';
+  msg.style.display = 'block';
+  setTimeout(() => {
+    msg.style.display = 'none';
+    msg.style.color = 'green'; // reset color for future success
+    msg.textContent = 'Thank you for your request!';
+  }, 7000);
+} else {
+  const result = await response.json();
+  form.reset();
+  const msg = document.getElementById('thankYouMessage');
+  msg.textContent = 'Thank you for your request!';
+  msg.style.color = 'green';
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 5000);
+}
   } catch (err) {
     console.error("Submission failed:", err);
   }
