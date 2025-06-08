@@ -1,0 +1,26 @@
+
+:root {
+  --background: #e3f2fd;
+  --text: #0d47a1;
+  --primary: #2196f3;
+  --button-bg: #1976d2;
+  --button-text: #ffffff;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+}
+
+h1, label {
+  color: var(--primary);
+}
+
+button {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+}
+
+button:hover {
+  opacity: 0.9;
+}
