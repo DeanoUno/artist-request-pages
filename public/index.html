@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request a Song</title>
+  <link rel="stylesheet" href="/themes.css">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <!-- Simplified styles here -->
+</head>
+<body>
+  <div class="form-container">
+    <div class="logo"><img id="artistLogo" src="" alt="Artist Logo"></div>
+    <h1 id="artistName">Request a Song</h1>
+    <form id="songRequestForm">
+      <label for="name">Your Name (optional)</label>
+      <input name="name" id="name">
+      <div style="position: relative;">
+        <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off">
+        <ul id="autocompleteList" class="autocomplete-list"></ul>
+      </div>
+      <label for="note">Note for the Artist</label>
+      <textarea name="note" id="note" rows="3"></textarea>
+      <input type="hidden" name="artistId" id="artistId">
+      <button type="submit">Send Request</button>
+    </form>
+    <div class="thank-you" id="thankYou">Thank you for your request!</div>
+    <div class="tip-link" id="tipLink"></div>
+    <div class="footer">
+      Powered by <a href="/partner.html">SanibelSong.com</a>
+    </div>
+    <div class="debug-log" id="debug"></div>
+  </div>
+  <script>
+    const debug = document.getElementById('debug');
+    const log = (msg) => debug.innerHTML += `<div>${msg}</div>`;
+    const params = new URLSearchParams(window.location.search);
+    const artistId = params.get('artist') || 'deano';
+    const configURL = 'https://opensheet.elk.sh/113QUjjcc72tnxFltbh2e2wcNQ896dwOLv2uG2mrYEsY/config';
+    document.getElementById('artistId').value = artistId;
+
+    let artist;
+    let userIP = "";
+    fetch("https://api.ipify.org?format=json")
+      .then(res => res.json())
+      .then(data => userIP = data.ip || "")
+      .catch(() => userIP = "");
+
+    fetch(configURL)
+      .then(res => res.json())
+      .then(data => {
+        if (!Array.isArray(data)) return log('Error: config data is not an array');
+        artist = data.find(row => (row['artist_id'] || '').trim() === artistId);
+        if (!artist) return log(`Artist config not found for: ${artistId}`);
+        const isActive = (artist.active || '').trim().toUpperCase() === 'TRUE';
+        if (!isActive) {
+          document.body.innerHTML = `<div style="padding: 2rem; font-family: sans-serif; text-align: center;"><h2>This request page is currently inactive.</h2><p>Please contact the artist or visit <a href='https://sanibelsong.com' target='_blank'>SanibelSong.com</a>.</p></div>`;
+          return;
+        }
+        document.body.classList.add(`theme-${artistId}`);
+        document.getElementById('artistName').textContent = artist.artistName;
+        if (artist.logoUrl) document.getElementById('artistLogo').src = artist.logoUrl;
+      })
+      .catch(err => log('Error loading config: ' + err));
+
+    document.getElementById('songRequestForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.ip = userIP;
+
+      try {
+        await fetch("https://script.google.com/macros/s/AKfycbxIoKwBdu32yOEihI6_rFAoGVf8-_ZJnsrzEHWU1tl2g1p0o9o5k48omFx5eNQtyZH8/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (artist?.pushover_user_key && artist?.pushover_token) {
+          fetch("https://api.pushover.net/1/messages.json", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              token: artist.pushover_token,
+              user: artist.pushover_user_key,
+              title: "🎶 New Song Request!",
+              message: `From ${data.name || 'Anonymous'}: ${data.song} — ${data.note || ''}`
+            })
+          });
+        }
+
+        form.reset();
+        document.getElementById('thankYou').style.display = 'block';
+        setTimeout(() => document.getElementById('thankYou').style.display = 'none', 5000);
+      } catch (err) {
+        console.error("Submit error:", err);
+        alert("There was a problem submitting your request.");
+      }
+    });
+  </script>
+</body>
+</html>
