@@ -1,7 +1,8 @@
 [build]
   publish = "public"
-  functions = "netlify/functions"
+  command = ""  # prevents Netlify from trying to run npm/yarn/etc
 
 [functions]
+  directory = "netlify/functions"
   node_bundler = "esbuild"
   included_files = ["netlify/functions/secrets/service-account.json"]
