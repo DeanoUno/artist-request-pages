@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "google-spreadsheet": "^4.1.4"
+    "google-spreadsheet": "^4.1.4",
+    "googleapis": "^150.0.1"
   }
 }
