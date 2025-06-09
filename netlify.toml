@@ -1,8 +1,11 @@
 [build]
-  publish = "public"
-  command = ""  # prevents Netlify from trying to run npm/yarn/etc
+publish = "public"
+command = "echo 'No build step required.'"
 
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
   included_files = ["netlify/functions/secrets/service-account.json"]
+
+[[plugins]]
+package = "@netlify/plugin-functions-install-core"
