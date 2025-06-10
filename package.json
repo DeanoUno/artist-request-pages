@@ -17,8 +17,8 @@
     "url": "https://github.com/DeanoUno/artist-request-pages/issues"
   },
   "homepage": "https://github.com/DeanoUno/artist-request-pages#readme",
-  "dependencies": {
-    "google-spreadsheet": "^4.1.4",
-    "googleapis": "^150.0.1"
-  }
+"dependencies": {
+  "google-spreadsheet": "^4.1.4",
+  "node-fetch": "^2.6.7"
+}
 }
