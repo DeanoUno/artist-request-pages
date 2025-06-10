@@ -8,6 +8,7 @@ exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
+  console.log("🧪 Running clean submit-request handler");
 
   const raw = JSON.parse(event.body);
   const sanitize = (str, maxLen = 300) =>
