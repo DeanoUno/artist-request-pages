@@ -7,5 +7,9 @@ command = "echo 'No build step required.'"
   node_bundler = "esbuild"
   included_files = ["netlify/functions/secrets/service_account.json"]
 
+
+[functions."*"]
+    external_node_modules = ["googleapis"]
+
 [[plugins]]
 package = "@netlify/plugin-functions-install-core"
