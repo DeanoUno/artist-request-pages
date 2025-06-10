@@ -34,7 +34,7 @@ exports.handler = async (event) => {
 console.log("➡️ Form submission:", { artistId, song, note, ip });
 
    
-    const keyPath = path.join(__dirname, 'secrets', 'service-account.json');
+    const keyPath = path.join(__dirname, 'secrets', 'service_account.json');
     const credentials = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
     const auth = new GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
     const client = await auth.getClient();
