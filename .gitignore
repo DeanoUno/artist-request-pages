@@ -4,3 +4,4 @@ netlify/functions/secrets/service-account.json
 # Ignore node_modules
 netlify/functions/node_modules/
 .DS_Store
+› 
