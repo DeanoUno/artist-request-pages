@@ -178,7 +178,12 @@ let allSongs = [];
 let validSongs = new Set();
 let userIP = '';
 
-fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist'))
+  const artistId = new URLSearchParams(window.location.search).get('artist_id');
+  if (!artistId) {
+    alert("Missing artist_id in the URL");
+    throw new Error("Missing artist_id");
+  }
+  fetch('/.netlify/functions/load-config?artist_id=' + artistId)
   .then(res => res.json())
 .then(artistData => {
   window.artist = artistData;
@@ -395,7 +400,7 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
   data.pushoverUserKey = artist.pushoverUserKey;
 
   try {
-const response = await fetch('/.netlify/functions/submit-request', {
+const response = await fetch('/.netlify/functions/log-request-clean', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(data)
