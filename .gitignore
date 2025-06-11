@@ -5,3 +5,7 @@ netlify/functions/secrets/service-account.json
 netlify/functions/node_modules/
 .DS_Store
 › 
+# Local Netlify folder
+.netlify
+netlify/functions/secrets/service_account.json
+netlify/functions/secrets/service_account.json
