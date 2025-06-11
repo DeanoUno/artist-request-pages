@@ -8,7 +8,7 @@ command = "echo 'No build step required.'"
   included_files = ["netlify/functions/secrets/service_account.json"]
 
 
-[functions."*"]
+  [functions."*"]
     external_node_modules = ["googleapis"]
 
 [[plugins]]
