@@ -1,13 +1,11 @@
 const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
 const path = require('path');
-const fs = require('fs');
 const sendPushoverTip = require('./send-pushover-tip');
 
-const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c'; // Artist Config Sheet ID
+const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
 const CONFIG_TAB_NAME = 'Config';
 const TIP_LOG_TAB_NAME = 'Tip Log';
-const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -21,16 +19,17 @@ exports.handler = async (event) => {
 
     console.log('✅ Tip log received for:', artistId, 'via', method);
 
-    // Load and parse service account from env
-    const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_CONTENT);
-    console.log('✅ Loaded service account credentials successfully');
+    // ✅ Load service account from local file
+    const creds = require('./secrets/service_account.json');
+    console.log('✅ Loaded service account from local file');
 
-    // Auth and initialize Sheets API
-    const auth = new GoogleAuth({ scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
-    await auth.fromJSON(credentials);  // ✅ Key fix
+    const auth = new GoogleAuth({
+      credentials: creds,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
     const sheets = google.sheets({ version: 'v4', auth });
 
-    // Log to sheet
     await sheets.spreadsheets.values.append({
       spreadsheetId: CONFIG_SHEET_ID,
       range: `${TIP_LOG_TAB_NAME}!A1`,
@@ -42,7 +41,6 @@ exports.handler = async (event) => {
 
     console.log('✅ Tip log appended successfully');
 
-    // Optional: Pushover or Telegram tip notification
     await sendPushoverTip(artistId, method);
 
     return {
