@@ -1,11 +1,9 @@
-const fs = require('fs');
 const { google } = require('googleapis');
-const { GoogleAuth } = require('google-auth-library');
+const { JWT } = require('google-auth-library');
+const fs = require('fs');
 const path = require('path');
-const sendPushoverTip = require('./send-pushover-tip');
 
 const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
-const CONFIG_TAB_NAME = 'Config';
 const TIP_LOG_TAB_NAME = 'Tip Log';
 
 exports.handler = async (event) => {
@@ -23,14 +21,15 @@ exports.handler = async (event) => {
     const credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'secrets/service_account.json')));
     console.log('✅ Loaded service account from local file');
 
-    // ✅ Fix: Properly bind credentials to auth and get client
-    const auth = new google.auth.JWT(
-      credentials.client_email,
-      null,
-      credentials.private_key,
-      ['https://www.googleapis.com/auth/spreadsheets']
-    );
-    const sheets = google.sheets({ version: 'v4', auth });    await sheets.spreadsheets.values.append({
+    const authClient = new JWT({
+      email: credentials.client_email,
+      key: credentials.private_key,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth: authClient });
+
+    await sheets.spreadsheets.values.append({
       spreadsheetId: CONFIG_SHEET_ID,
       range: `${TIP_LOG_TAB_NAME}!A1`,
       valueInputOption: 'USER_ENTERED',
@@ -39,19 +38,9 @@ exports.handler = async (event) => {
       },
     });
 
-    console.log('✅ Tip log appended successfully');
-
-    await sendPushoverTip(artistId, method);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Tip logged successfully' }),
-    };
-  } catch (error) {
-    console.error('❌ Error logging tip:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Error logging tip' }),
-    };
+    return { statusCode: 200, body: JSON.stringify({ message: 'Tip logged successfully' }) };
+  } catch (err) {
+    console.error('❌ Error logging tip:', err);
+    return { statusCode: 500, body: 'Error logging tip' };
   }
 };
