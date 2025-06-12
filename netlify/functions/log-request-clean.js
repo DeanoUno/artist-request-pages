@@ -64,16 +64,19 @@ exports.handler = async function (event) {
   const row = [now, name, song, note, ip, pushoverToken, pushoverUserKey];
 
   try {
-    const result = await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: 'Requests!A1',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [row],
-      },
-    });
+  console.log("📝 Preparing to append row to sheet:", sheetId);
+  console.log("📝 Row data:", row);
 
-    console.log("✅ Request logged:", result.data.updates);
+  const result = await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: 'Requests!A1',
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [row],
+    },
+  });
+
+  console.log("✅ Append response:", result.data);
     return {
       statusCode: 200,
       body: JSON.stringify({ success: true }),
