@@ -36,6 +36,13 @@ if (!artistId) {
   };
 }
 
+// 🗺️ Map artistId to their Sheet IDs
+const SHEET_MAP = {
+  deanouno: '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c', // <-- update with actual ID
+  deanmar: '17sa45keVke_tftdRiCqDHBj_FTcf-d7klRWiYRRauhE',
+  // Add more as needed
+};
+
 const sheetId = SHEET_MAP[artistId];
 console.log("📄 Sheet ID for artist:", sheetId);
 
