@@ -18,16 +18,21 @@ exports.handler = async (event) => {
 
     console.log('✅ Tip log received for:', artistId, 'via', method);
 
-    const credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'secrets/service_account.json')));
+    const credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'secrets/service_account.json'), 'utf8'));
     console.log('✅ Loaded service account from local file');
+    console.log('🔐 client_email:', credentials.client_email);
 
-    const authClient = new JWT({
-      email: credentials.client_email,
-      key: credentials.private_key,
+    const auth = new GoogleAuth({
+      credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    const sheets = google.sheets({ version: 'v4', auth: authClient });
+    const authClient = await auth.getClient();
+
+    const sheets = google.sheets({
+      version: 'v4',
+      auth: authClient,
+    });
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: CONFIG_SHEET_ID,
