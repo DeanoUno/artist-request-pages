@@ -9,7 +9,9 @@ exports.handler = async function(event) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
   console.log("🧪 Running clean log-request handler");
-
+  console.log("🔐 Loaded creds summary:");
+  console.log("  client_email:", creds.client_email);
+  console.log("  private_key_id:", creds.private_key_id?.substring(0, 6) + "...");
   const raw = JSON.parse(event.body);
   const sanitize = (str, maxLen = 300) =>
     String(str || '')
