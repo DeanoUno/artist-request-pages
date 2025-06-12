@@ -34,15 +34,13 @@ exports.handler = async function (event) {
     const credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'secrets/service_account.json')));
     console.log('✅ Loaded service account from local file');
 
-    // ✅ Fix: Properly bind credentials to auth and get client
-    const auth = new GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-    const authClient = await auth.getClient();  // <-- this is what was missing
-
-    const sheets = google.sheets({ version: 'v4', auth: authClient });  // <-- now sheets will be authenticated
-
+    const auth = new google.auth.JWT(
+      credentials.client_email,
+      null,
+      credentials.private_key,
+      ['https://www.googleapis.com/auth/spreadsheets']
+    );
+    const sheets = google.sheets({ version: 'v4', auth });
     const values = [[new Date().toISOString(), name, song, note, ip]];
     await sheets.spreadsheets.values.append({
       spreadsheetId: CONFIG_SHEET_ID,

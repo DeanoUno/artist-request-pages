@@ -24,15 +24,13 @@ exports.handler = async (event) => {
     console.log('✅ Loaded service account from local file');
 
     // ✅ Fix: Properly bind credentials to auth and get client
-    const auth = new GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-    const authClient = await auth.getClient();  // <-- this is what was missing
-
-    const sheets = google.sheets({ version: 'v4', auth: authClient });  // <-- now sheets will be authenticated
-
-    await sheets.spreadsheets.values.append({
+    const auth = new google.auth.JWT(
+      credentials.client_email,
+      null,
+      credentials.private_key,
+      ['https://www.googleapis.com/auth/spreadsheets']
+    );
+    const sheets = google.sheets({ version: 'v4', auth });    await sheets.spreadsheets.values.append({
       spreadsheetId: CONFIG_SHEET_ID,
       range: `${TIP_LOG_TAB_NAME}!A1`,
       valueInputOption: 'USER_ENTERED',
