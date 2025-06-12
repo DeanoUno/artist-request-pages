@@ -11,41 +11,41 @@ exports.handler = async function (event) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  console.log("📥 log-request-clean triggered");
+console.log("📥 log-request-clean triggered");
 
-  const body = JSON.parse(event.body || '{}');
+const body = JSON.parse(event.body || '{}');
+console.log("🧾 Parsed body:", body);
 
-  const {
-    artistId,
-    name = '',
-    song = '',
-    note = '',
-    ip = '',
-    pushoverToken = '',
-    pushoverUserKey = ''
-  } = body;
+const {
+  artistId,
+  name = '',
+  song = '',
+  note = '',
+  ip = '',
+  pushoverToken = '',
+  pushoverUserKey = ''
+} = body;
 
-  if (!artistId) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing artistId' })
-    };
-  }
+console.log("🎯 artistId:", artistId);
 
-  // Map artist IDs to Sheet IDs (replace with dynamic lookup in production)
-  const SHEET_MAP = {
-    deanuno: '1Gd6ONQsxR6m6T9oVCoBhztlkhORCsDrOl8Vf5ZCMqKs',
-    deanmar: '17sa45keVke_tftdRiCqDHBj_FTcf-d7klRWiYRRauhE',
-    // Add more as needed
+if (!artistId) {
+  console.error("❌ Missing artistId");
+  return {
+    statusCode: 400,
+    body: JSON.stringify({ error: 'Missing artistId' })
   };
+}
 
-  const sheetId = SHEET_MAP[artistId];
-  if (!sheetId) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Unknown artistId' })
-    };
-  }
+const sheetId = SHEET_MAP[artistId];
+console.log("📄 Sheet ID for artist:", sheetId);
+
+if (!sheetId) {
+  console.error("❌ Unknown artistId or missing sheet mapping");
+  return {
+    statusCode: 400,
+    body: JSON.stringify({ error: 'Unknown artistId' })
+  };
+}
 
   // Load service account credentials
   const keyPath = path.resolve(__dirname, 'secrets', 'service-account.json');
