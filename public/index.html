@@ -6,6 +6,7 @@
   <title>Request a Song</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&family=Cabin&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/themes.css" />
+  <link rel="stylesheet" href="/themes/theme-default.css" id="activeTheme">
   <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <style>
     body {
@@ -53,7 +54,9 @@
       background: #ffc107;
       color: black;
       font-weight: bold;
-      padding: 0.75rem;
+      padding: 0.75rem;ls netlify/functions/secrets/service_account.json
+
+  
       border: none;
       border-radius: 8px;
       margin-top: 1.5rem;
@@ -133,57 +136,64 @@
 </head>
 <body id="pageBody">
   <div class="form-container">
-    <div class="logo">
-      <img id="artistLogo" src="" alt="Artist Logo" />
+<div class="form-container">
+  <div class="logo">
+    <img id="artistLogo" src="" alt="Artist Logo" />
+  </div>
+
+  <h1 id="artistName">Request a Song</h1>
+
+  <form id="requestForm">
+    <label for="name">Your Name (optional)</label>
+    <input name="name" id="name" />
+
+    <!-- Tipping Options -->
+    <div id="tipSection" class="tip-buttons" style="display: none;">
+      <p><strong>Tips are gratefully accepted:</strong></p>
+      <div id="tipLinks"></div>
     </div>
-    <h1 id="artistName">Request a Song</h1>
-    <form id="requestForm">
-      <label for="name">Your Name (optional)</label>
-      <input name="name" id="name" />
 
-      <div id="tipSection" class="tip-buttons" style="display: none;">
-        <p><strong>Tips are gratefully accepted:</strong></p>
-        <div id="tipLinks"></div>
-      </div>
-
-      <div style="position: relative;">
-        <label for="songSearch">Song</label>
-        <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
-        <div id="autocompleteList" class="autocomplete-list"></div>
-      </div>
-
-      <div style="margin-top: 1rem;">
-        <label for="showAllSongs" style="cursor: pointer; font-weight: bold; display: block; margin-bottom: 0.25rem;">
-          Check the box to see all songs
-        </label>
-        
-        <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.95em;">
-          <input type="checkbox" id="showAllSongs" style="width: 0.9em; height: 0.9em; margin: 0;" />
-          Show full song list
-        </label>
-
-        <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
-      </div>
-
-      <label for="note">Note for the Artist <span style="font-weight: normal;">(e.g., birthday, anniversary, special request)</span></label>
-      <textarea name="note" id="note" rows="3" placeholder="Optional: Let us know if you're celebrating something special or have a dedication!"></textarea>
-      <input type="hidden" name="artistId" id="artistId" />
-      <button id="sendBtn" type="submit" disabled>Send Request</button>
-    </form>
-    <div class="thank-you" id="thankYouMessage">Thank you for your request!
+    <!-- Song Search -->
+    <div style="position: relative; margin-top: 1rem;">
+      <label for="songSearch">Search</label>
+      <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
+      <div id="autocompleteList" class="autocomplete-list"></div>
     </div>
+
+    <!-- Full Song List Toggle -->
+    <div style="margin-top: 1rem;">
+      <label for="showAllSongs" style="cursor: pointer; font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        Or check the box to see all songs
+      </label>
+      <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.95em;">
+        <input type="checkbox" id="showAllSongs" style="width: 0.9em; height: 0.9em; margin: 0;" />
+        Full song list
+      </label>
+      <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
+    </div>
+
+    <!-- Optional Note -->
+    <label for="note">Note for the Artist <span style="font-weight: normal;">(e.g., birthday, anniversary, special request)</span></label>
+    <textarea name="note" id="note" rows="3" placeholder="Optional: Let us know if you're celebrating something special or have a dedication!"></textarea>
+
+    <!-- Hidden Artist ID -->
+    <input type="hidden" name="artistId" id="artistId" />
+
+    <!-- Submit Button -->
+    <button id="sendBtn" type="submit" disabled>Send Request</button>
+  </form>
+
+  <!-- Thank You Message -->
+  <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
+</div>
+
 
 <script>
 let allSongs = [];
 let validSongs = new Set();
 let userIP = '';
 
-  const artistId = new URLSearchParams(window.location.search).get('artist_id');
-  if (!artistId) {
-    alert("Missing artist_id in the URL");
-    throw new Error("Missing artist_id");
-  }
-  fetch('/.netlify/functions/load-config?artist_id=' + artistId)
+fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist'))
   .then(res => res.json())
 .then(artistData => {
   window.artist = artistData;
