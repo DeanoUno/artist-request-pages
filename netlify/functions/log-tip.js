@@ -18,34 +18,30 @@ exports.handler = async (event) => {
 
     console.log('✅ Tip log received for:', artistId, 'via', method);
 
-    const credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'secrets/service_account.json'), 'utf8'));
+    const credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'secrets/service_account.json')));
     console.log('✅ Loaded service account from local file');
     console.log('🔐 client_email:', credentials.client_email);
 
-    const auth = new GoogleAuth({
-      credentials,
+    const jwtClient = new JWT({
+      email: credentials.client_email,
+      key: credentials.private_key,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
+    await jwtClient.authorize();
 
-    const authClient = await auth.getClient();
+    const sheets = google.sheets({ version: 'v4', auth: jwtClient });
 
-    const sheets = google.sheets({
-      version: 'v4',
-      auth: authClient,
-    });
-
+    const values = [[new Date().toISOString(), artistId, method]];
     await sheets.spreadsheets.values.append({
       spreadsheetId: CONFIG_SHEET_ID,
       range: `${TIP_LOG_TAB_NAME}!A1`,
       valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [[new Date().toISOString(), artistId, method]],
-      },
+      requestBody: { values },
     });
 
-    return { statusCode: 200, body: JSON.stringify({ message: 'Tip logged successfully' }) };
-  } catch (err) {
-    console.error('❌ Error logging tip:', err);
-    return { statusCode: 500, body: 'Error logging tip' };
+    return { statusCode: 200, body: JSON.stringify({ success: true }) };
+  } catch (error) {
+    console.error('❌ Error logging tip:', error);
+    return { statusCode: 500, body: 'Logging failed' };
   }
 };
