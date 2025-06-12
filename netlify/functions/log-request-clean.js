@@ -1,50 +1,89 @@
+// netlify/functions/log-request-clean.js
+
 const { google } = require('googleapis');
-const { JWT } = require('google-auth-library');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 
-const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
-const REQUEST_LOG_TAB_NAME = 'Request Log';
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
-exports.handler = async (event) => {
+exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  console.log("📥 log-request-clean triggered");
+
+  const body = JSON.parse(event.body || '{}');
+
+  const {
+    artistId,
+    name = '',
+    song = '',
+    note = '',
+    ip = '',
+    pushoverToken = '',
+    pushoverUserKey = ''
+  } = body;
+
+  if (!artistId) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing artistId' })
+    };
+  }
+
+  // Map artist IDs to Sheet IDs (replace with dynamic lookup in production)
+  const SHEET_MAP = {
+    deanuno: '1Gd6ONQsxR6m6T9oVCoBhztlkhORCsDrOl8Vf5ZCMqKs',
+    deanmar: '17sa45keVke_tftdRiCqDHBj_FTcf-d7klRWiYRRauhE',
+    // Add more as needed
+  };
+
+  const sheetId = SHEET_MAP[artistId];
+  if (!sheetId) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Unknown artistId' })
+    };
+  }
+
+  // Load service account credentials
+  const keyPath = path.resolve(__dirname, 'secrets', 'service-account.json');
+  const keyFile = fs.readFileSync(keyPath, 'utf8');
+  const key = JSON.parse(keyFile);
+
+  const jwtClient = new google.auth.JWT({
+    email: key.client_email,
+    key: key.private_key,
+    scopes: SCOPES,
+  });
+
+  const sheets = google.sheets({ version: 'v4', auth: jwtClient });
+
+  const now = new Date().toISOString();
+  const row = [now, name, song, note, ip, pushoverToken, pushoverUserKey];
+
   try {
-    const raw = JSON.parse(event.body);
-    const sanitize = (str, maxLen = 300) =>
-      String(str || '').replace(/[<>]/g, '').replace(/[�-]/g, '').trim().substring(0, maxLen);
-
-    const name = sanitize(raw.name, 50);
-    const song = sanitize(raw.song, 150);
-    const note = sanitize(raw.note, 300);
-    const ip = sanitize(raw.ip, 45);
-
-    const credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'secrets/service_account.json')));
-    console.log('✅ Loaded service account from local file');
-    console.log('🔐 client_email:', credentials.client_email);
-
-    const jwtClient = new JWT({
-      email: credentials.client_email,
-      key: credentials.private_key,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-    await jwtClient.authorize();
-
-    const sheets = google.sheets({ version: 'v4', auth: jwtClient });
-
-    const values = [[new Date().toISOString(), name, song, note, ip]];
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: CONFIG_SHEET_ID,
-      range: `${REQUEST_LOG_TAB_NAME}!A1`,
+    const result = await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: 'Requests!A1',
       valueInputOption: 'USER_ENTERED',
-      requestBody: { values },
+      requestBody: {
+        values: [row],
+      },
     });
 
-    return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    console.log("✅ Request logged:", result.data.updates);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true }),
+    };
+
   } catch (error) {
-    console.error('❌ Error logging request:', error);
-    return { statusCode: 500, body: 'Logging failed' };
+    console.error("❌ Error logging request:", error.message);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Failed to log request' }),
+    };
   }
 };
