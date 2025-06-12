@@ -1,0 +1,27 @@
+body.theme-deano h1 {
+  text-align: center;
+  color: #0059d1;
+  font-size: 1.25rem;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body.theme-marvilla {
+  background: #fdf9f3;
+  color: #333;
+}
+
+body.theme-marvilla h1 {
+  color: #c49a6c;
+  font-family: "Georgia", serif;
+}
+
+body.theme-marvilla button {
+  background: #b58e5c;
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+
+body.theme-marvilla .tip-logo-button:hover {
+  box-shadow: 0 0 8px rgba(196, 154, 108, 0.6);
+}

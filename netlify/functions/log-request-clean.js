@@ -29,13 +29,14 @@ exports.handler = async function (event) {
     const pushoverToken = sanitize(raw.pushoverToken, 50);
     const pushoverUserKey = sanitize(raw.pushoverUserKey, 50);
 
-    const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_CONTENT);
-    console.log('✅ Loaded service account credentials successfully');
+    const creds = require('./secrets/service_account.json');
+    console.log('✅ Loaded service account from local file');
 
     const auth = new GoogleAuth({
-      credentials,
+      credentials: creds,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
+
     const sheets = google.sheets({ version: 'v4', auth });
 
     const values = [[new Date().toISOString(), name, song, note, ip]];
