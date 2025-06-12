@@ -33,9 +33,9 @@ exports.handler = async function (event) {
     console.log('✅ Loaded service account credentials successfully');
 
     const auth = new GoogleAuth({
+      credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
-    await auth.fromJSON(credentials);
     const sheets = google.sheets({ version: 'v4', auth });
 
     const values = [[new Date().toISOString(), name, song, note, ip]];
