@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
 const fetch = require('node-fetch');
@@ -29,15 +31,17 @@ exports.handler = async function (event) {
     const pushoverToken = sanitize(raw.pushoverToken, 50);
     const pushoverUserKey = sanitize(raw.pushoverUserKey, 50);
 
-    const creds = require('./secrets/service_account.json');
+    const credentials = JSON.parse(fs.readFileSync(path.join(__dirname, 'secrets/service_account.json')));
     console.log('✅ Loaded service account from local file');
 
+    // ✅ Fix: Properly bind credentials to auth and get client
     const auth = new GoogleAuth({
-      credentials: creds,
+      credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
+    const authClient = await auth.getClient();  // <-- this is what was missing
 
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth: authClient });  // <-- now sheets will be authenticated
 
     const values = [[new Date().toISOString(), name, song, note, ip]];
     await sheets.spreadsheets.values.append({

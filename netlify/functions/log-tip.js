@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
 const path = require('path');
