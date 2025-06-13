@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RQuestify Theme Designer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #2e2669;
+      color: #ffffff;
+      display: flex;
+      height: 100vh;
+    }
+    aside.controls {
+      width: 280px;
+      background: #1e1b44;
+      padding: 1rem;
+      overflow-y: auto;
+      box-shadow: 4px 0 8px rgba(0, 0, 0, 0.2);
+    }
+    .controls details {
+      margin-bottom: 1rem;
+    }
+    .controls summary {
+      cursor: pointer;
+      font-weight: bold;
+      color: #ffc107;
+    }
+    .controls label {
+      display: block;
+      margin-top: 0.5rem;
+    }
+    .controls input, .controls select, .controls button, .controls select.theme-selector {
+      width: 100%;
+      padding: 4px;
+      margin-top: 0.25rem;
+      border-radius: 4px;
+      border: none;
+      font-size: 1rem;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .form-container {
+      background: var(--container-bg, #0b0538);
+      padding: 1.5rem;
+      border-radius: var(--border-radius, 16px);
+      box-shadow: 0 4px 12px rgba(0,0,0,var(--shadow-opacity, 0.1));
+      font-size: var(--font-size, 1rem);
+      font-family: var(--font-family, 'Segoe UI', sans-serif);
+      color: var(--font-color, #ffffff);
+      width: 100%;
+      max-width: 500px;
+    }
+    .form-container button {
+      background: var(--button-bg, #ffc107);
+      color: var(--button-text, black);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .logo img {
+      max-width: 100%;
+      height: auto;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: var(--input-padding, 0.75rem);
+      margin-top: 0.5rem;
+      border-radius: var(--border-radius, 8px);
+      border: 1px solid #ccc;
+      font-size: var(--font-size, 1rem);
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    button {
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    .thank-you {
+      display: none;
+      text-align: center;
+      color: green;
+      margin-top: 1rem;
+    }
+    .export-box {
+      margin-top: 2rem;
+      width: 100%;
+      max-width: 500px;
+    }
+    textarea.export-output {
+      width: 100%;
+      height: 200px;
+      font-family: monospace;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .link-preview {
+      font-family: monospace;
+      font-size: 0.9rem;
+      background: #111;
+      color: #0f0;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border-radius: 6px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <aside class="controls">
+    <details open>
+      <summary>Background</summary>
+      <label for="bgColor">Page Background</label>
+      <input type="color" id="bgColor">
+    </details>
+
+    <details open>
+      <summary>Container</summary>
+      <label for="containerBg">Container Background</label>
+      <input type="color" id="containerBg">
+      <label for="fontColor">Font Color</label>
+      <input type="color" id="fontColor">
+      <label for="fontSize">Font Size</label>
+      <input type="range" id="fontSize" min="12" max="24">
+      <label for="borderRadius">Corner Radius</label>
+      <input type="range" id="borderRadius" min="0" max="30">
+      <label for="shadow">Shadow Intensity</label>
+      <input type="range" id="shadow" min="0" max="1" step="0.05">
+      <label for="fontFamily">Font Family</label>
+      <select id="fontFamily">
+        <option value="'Segoe UI', sans-serif">Segoe UI</option>
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans</option>
+        <option value="Courier New, monospace">Courier New</option>
+      </select>
+    </details>
+
+    <details>
+      <summary>Button</summary>
+      <label for="buttonBg">Button Background</label>
+      <input type="color" id="buttonBg">
+      <label for="buttonText">Button Text Color</label>
+      <input type="color" id="buttonText">
+    </details>
+
+    <label for="themeSelect">🎨 Load Existing Theme</label>
+    <select id="themeSelect" class="theme-selector"></select>
+    <button onclick="loadSelectedTheme()">📂 Load Selected</button>
+    <button onclick="deleteSelectedTheme()">🗑️ Delete Selected</button>
+    <button onclick="handleSave()">💾 Save Theme</button>
+    <button onclick="handleExport()">📤 Export CSS</button>
+    <button onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+    <input type="text" id="themeNameExport" placeholder="filename (e.g. blue)">
+  </aside>
+
+  <main>
+    <div class="form-container">
+      <div class="logo">
+        <img src="/assets/rQuestify-logo-trans-bckgrnd.png" alt="Logo">
+      </div>
+      <h2>Request a Song</h2>
+      <input placeholder="Your name">
+      <input placeholder="Song name">
+      <textarea placeholder="Note to artist"></textarea>
+      <button>Send Request</button>
+      <div class="thank-you">Thank you for your request!</div>
+    </div>
+
+    <div class="export-box">
+      <textarea class="export-output" readonly></textarea>
+      <div class="link-preview" id="linkPreview"></div>
+    </div>
+  </main>
+  <script>
+    const root = document.documentElement;
+
+    function applyTheme() {
+      root.style.setProperty('--font-size', document.getElementById('fontSize').value + 'px');
+      root.style.setProperty('--border-radius', document.getElementById('borderRadius').value + 'px');
+      root.style.setProperty('--shadow-opacity', document.getElementById('shadow').value);
+      root.style.setProperty('--font-family', document.getElementById('fontFamily').value);
+      root.style.setProperty('--container-bg', document.getElementById('containerBg').value);
+      root.style.setProperty('--font-color', document.getElementById('fontColor').value);
+      root.style.setProperty('--button-bg', document.getElementById('buttonBg').value);
+      root.style.setProperty('--button-text', document.getElementById('buttonText').value);
+      document.body.style.backgroundColor = document.getElementById('bgColor').value;
+    }
+
+    function handleExport() {
+      const name = document.getElementById('themeNameExport').value || 'custom-theme';
+      const filename = 'theme-' + name.toLowerCase().replace(/\s+/g, '-') + '.css';
+      const css = `:root {
+  --font-size: ${document.getElementById('fontSize').value}px;
+  --border-radius: ${document.getElementById('borderRadius').value}px;
+  --shadow-opacity: ${document.getElementById('shadow').value};
+  --font-family: ${document.getElementById('fontFamily').value};
+  --container-bg: ${document.getElementById('containerBg').value};
+  --font-color: ${document.getElementById('fontColor').value};
+  --button-bg: ${document.getElementById('buttonBg').value};
+  --button-text: ${document.getElementById('buttonText').value};
+}
+body {
+  background: ${document.getElementById('bgColor').value};
+}`;
+      document.querySelector('.export-output').value = css;
+
+      const blob = new Blob([css], { type: 'text/css' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+
+      document.getElementById('linkPreview').innerText = `<link rel="stylesheet" href="/themes/${filename}">`;
+    }
+
+    document.querySelectorAll('.controls input, .controls select').forEach(el => {
+      el.addEventListener('input', applyTheme);
+    });
+
+    populateThemeDropdown();
+
+    if (localStorage.getItem('rquestify-theme')) {
+      document.getElementById('themeSelect').value = 'rquestify-theme';
+      loadSelectedTheme();
+    } else {
+      applyTheme();
+    }
+  </script>
+<script>
+  const themePrefix = 'rquestify-theme-';
+
+  function handleSave() {
+    const name = document.getElementById('themeNameExport').value.trim();
+    if (!name) return alert("Please enter a theme name before saving.");
+    const key = themePrefix + name.toLowerCase().replace(/\s+/g, '-');
+    const css = document.querySelector('.export-output').value;
+    localStorage.setItem(key, css);
+    populateThemeDropdown();
+    alert(`Theme "${name}" saved!`);
+  }
+
+  function populateThemeDropdown() {
+    const dropdown = document.getElementById('themeSelect');
+    dropdown.innerHTML = '<option value="">-- Select Theme --</option>';
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith(themePrefix)) {
+        const option = document.createElement('option');
+        option.value = k;
+        option.textContent = k.replace(themePrefix, '');
+        dropdown.appendChild(option);
+      }
+    });
+  }
+
+  function loadSelectedTheme() {
+    const key = document.getElementById('themeSelect').value;
+    if (!key) return alert("Please select a theme to load.");
+    const css = localStorage.getItem(key);
+    if (!css) return alert("No theme found.");
+    applyCSSFromString(css);
+  }
+
+  function deleteSelectedTheme() {
+    const key = document.getElementById('themeSelect').value;
+    if (!key) return alert("Please select a theme to delete.");
+    if (confirm("Delete this theme?")) {
+      localStorage.removeItem(key);
+      populateThemeDropdown();
+    }
+  }
+
+  function applyCSSFromString(css) {
+    const vars = {
+      '--font-size': /--font-size:\s*([\d.]+)px/.exec(css),
+      '--border-radius': /--border-radius:\s*([\d.]+)px/.exec(css),
+      '--shadow-opacity': /--shadow-opacity:\s*([\d.]+)/.exec(css),
+      '--font-family': /--font-family:\s*([^;]+)/.exec(css),
+      '--container-bg': /--container-bg:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
+      '--font-color': /--font-color:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
+      '--button-bg': /--button-bg:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
+      '--button-text': /--button-text:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
+      '--bg': /background:\s*(#[0-9a-fA-F]{3,6})/.exec(css)
+    };
+
+    for (const key in vars) {
+      if (vars[key]) {
+        const value = vars[key][1];
+        switch (key) {
+          case '--bg':
+            document.body.style.backgroundColor = value;
+            break;
+          default:
+            root.style.setProperty(key, value);
+            break;
+        }
+      }
+    }
+
+    // Update UI sliders/colors
+    document.getElementById('fontSize').value = parseInt(vars['--font-size']?.[1] || 16);
+    document.getElementById('borderRadius').value = parseInt(vars['--border-radius']?.[1] || 8);
+    document.getElementById('shadow').value = parseFloat(vars['--shadow-opacity']?.[1] || 0.1);
+    document.getElementById('fontFamily').value = vars['--font-family']?.[1]?.trim() || "'Segoe UI', sans-serif";
+    document.getElementById('containerBg').value = vars['--container-bg']?.[1] || '#0b0538';
+    document.getElementById('fontColor').value = vars['--font-color']?.[1] || '#ffffff';
+    document.getElementById('buttonBg').value = vars['--button-bg']?.[1] || '#ffc107';
+    document.getElementById('buttonText').value = vars['--button-text']?.[1] || '#000000';
+    document.getElementById('bgColor').value = vars['--bg']?.[1] || '#2e2669';
+
+    applyTheme();
+  }
+
+  populateThemeDropdown();
+</script>
+
+</body>
+</html>
