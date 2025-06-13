@@ -38,7 +38,7 @@ if (!artistId) {
 
 // 🗺️ Map artistId to their Sheet IDs
 const SHEET_MAP = {
-  deanouno: '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c', // <-- update with actual ID
+  deanouno: '1Gd6ONQsxR6m6T9oVCoBhztlkhORCsDrOl8Vf5ZCMqKs', // <-- update with actual ID
   deanmar: '17sa45keVke_tftdRiCqDHBj_FTcf-d7klRWiYRRauhE',
   // Add more as needed
 };
