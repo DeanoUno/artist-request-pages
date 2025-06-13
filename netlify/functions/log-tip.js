@@ -1,57 +1,138 @@
 const { google } = require('googleapis');
-const { GoogleAuth } = require('google-auth-library');
+const path = require('path');
+const fs = require('fs');
+const fetch = require('node-fetch');
+const { getArtistConfig } = require('./helpers/getArtistConfig');
 
-const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
-const TIP_LOG_TAB_NAME = 'Tip Log';
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
 exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  const body = JSON.parse(event.body || '{}');
+  const {
+    artistId,
+    method = '',
+    ip = ''
+  } = body;
+
+  console.log("📥 log-tip triggered for artistId:", artistId);
+
+  if (!artistId) {
+    console.error("❌ Missing artistId");
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing artistId' })
+    };
+  }
+
+  let sheetId, pushoverToken, pushoverUserKey, telegramChatId;
+
   try {
-    const raw = JSON.parse(event.body);
-    const sanitize = (str, maxLen = 100) =>
-      String(str || '')
-        .replace(/[<>]/g, '')
-        .replace(/[\u0000-\u001F\u007F]/g, '')
-        .trim()
-        .substring(0, maxLen);
+    const artistConfig = await getArtistConfig(artistId);
+    console.log("🎛️ Loaded artist config:", artistConfig);
 
-    const artistId = sanitize(raw.artistId, 50);
-    const method = sanitize(raw.method, 50);
+    ({
+      sheetId,
+      pushoverToken,
+      pushoverUserKey,
+      telegramChatId
+    } = artistConfig);
 
-    const creds = require('./secrets/service_account.json');
-    console.log('✅ Loaded service account from local file');
-    console.log('🔐 client_email:', creds.client_email);
+  } catch (err) {
+    console.error("❌ Failed to load artist config:", err.message);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Artist configuration not found.' }),
+    };
+  }
 
-    const auth = new GoogleAuth({
-      credentials: creds,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
+  // Load service account credentials
+  const keyPath = path.resolve(__dirname, 'secrets', 'service-account.json');
+  const keyFile = fs.readFileSync(keyPath, 'utf8');
+  const key = JSON.parse(keyFile);
 
-    const sheets = google.sheets({ version: 'v4', auth });
+  const jwtClient = new google.auth.JWT({
+    email: key.client_email,
+    key: key.private_key,
+    scopes: SCOPES,
+  });
 
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: CONFIG_SHEET_ID,
-      range: `${TIP_LOG_TAB_NAME}!A1`,
+  const sheets = google.sheets({ version: 'v4', auth: jwtClient });
+
+  const now = new Date().toISOString();
+  const row = [now, method, ip];
+
+  try {
+    const result = await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: 'Tip Log!A1',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
-        values: [[new Date().toISOString(), artistId, method]],
+        values: [row],
       },
     });
 
-    console.log('✅ Tip logged:', artistId, method);
+    console.log("💰 Tip log append success:", result.data);
+
+    // ✅ Pushover notification
+    if (pushoverToken && pushoverUserKey && method) {
+      try {
+        const message = `Someone clicked the ${method} tip button.`;
+        const pushResponse = await fetch('https://api.pushover.net/1/messages.json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            token: pushoverToken,
+            user: pushoverUserKey,
+            message,
+            title: '💸 Tip Clicked',
+            priority: '0'
+          })
+        });
+
+        const pushText = await pushResponse.text();
+        console.log("📲 Pushover response:", pushText);
+      } catch (pushErr) {
+        console.error("🚫 Failed to send Pushover notification:", pushErr.message);
+      }
+    }
+
+    // ✅ Telegram notification
+    const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (telegramBotToken && telegramChatId && method) {
+      try {
+        const message = `💸 Someone clicked the ${method} tip button.`;
+        const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+
+        const tgResponse = await fetch(telegramUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: telegramChatId,
+            text: message
+          })
+        });
+
+        const tgText = await tgResponse.text();
+        console.log("📬 Telegram response:", tgText);
+      } catch (tgErr) {
+        console.error("🚫 Failed to send Telegram notification:", tgErr.message);
+      }
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Tip logged successfully' }),
+      body: JSON.stringify({ success: true }),
     };
+
   } catch (error) {
-    console.error('❌ Error logging tip:', error);
+    console.error("❌ Error logging tip:", error.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error logging tip' }),
+      body: JSON.stringify({ error: 'Failed to log tip' }),
     };
   }
 };
