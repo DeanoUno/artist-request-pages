@@ -6,7 +6,7 @@ command = "echo 'No build step required.'"
   directory = "netlify/functions"
   node_bundler = "esbuild"
 included_files = [
-  "netlify/functions/_secrets/**",   ← notice the underscore _
+  "netlify/functions/_secrets/**",   
   "netlify/functions/helpers/**"
 ]
   
