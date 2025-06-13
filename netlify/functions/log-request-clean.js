@@ -24,7 +24,8 @@ const {
   note = '',
   ip = '',
   pushoverToken = '',
-  pushoverUserKey = ''
+  pushoverUserKey = '',
+  telegramChatId = ''
 } = body;
 
 console.log("🎯 artistId:", artistId);
