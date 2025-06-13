@@ -108,6 +108,29 @@ try {
       console.error("🚫 Failed to send Pushover notification:", pushErr.message);
     }
   }
+// ✅ Optional: Send Telegram notification
+const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+
+if (telegramBotToken && telegramChatId && song) {
+  try {
+    const message = `${name || 'Someone'} requested: ${song}`;
+    const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+
+    const tgResponse = await fetch(telegramUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: telegramChatId,
+        text: `🎶 ${message}`
+      })
+    });
+
+    const tgText = await tgResponse.text();
+    console.log("📬 Telegram response:", tgText);
+  } catch (tgErr) {
+    console.error("🚫 Failed to send Telegram notification:", tgErr.message);
+  }
+}
 
   return {
     statusCode: 200,
