@@ -9,14 +9,24 @@ async function getArtistConfig(artistId) {
 const keyPath = './netlify/functions/secrets/service_account.json';
   const creds = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
 
-  const doc = new GoogleSpreadsheet(CONFIG_SHEET_ID);
-  await doc.useServiceAccountAuth(creds);
-  await doc.loadInfo();
+console.log("📄 Connecting to config sheet");
 
-  const sheet = doc.sheetsByTitle['Config'];
-  const rows = await sheet.getRows();
+const doc = new GoogleSpreadsheet(CONFIG_SHEET_ID);
+await doc.useServiceAccountAuth(creds);
+console.log("🔑 Authenticated successfully");
 
-  const row = rows.find(r => r.artistId?.trim().toLowerCase() === artistId.trim().toLowerCase());
+await doc.loadInfo();
+console.log("📃 Sheet titles loaded:", Object.keys(doc.sheetsByTitle));
+
+const sheet = doc.sheetsByTitle['config'];
+if (!sheet) {
+  throw new Error("❌ 'config' sheet not found in config doc");
+}
+
+const rows = await sheet.getRows();
+console.log(`📦 Found ${rows.length} config rows`);
+
+const row = rows.find(r => r.artistId?.trim().toLowerCase() === artistId.trim().toLowerCase());
 
   if (!row) {
     throw new Error(`Artist config not found for: ${artistId}`);
