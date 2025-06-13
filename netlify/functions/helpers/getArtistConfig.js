@@ -32,12 +32,12 @@ const row = rows.find(r => r.artistId?.trim().toLowerCase() === artistId.trim().
     throw new Error(`Artist config not found for: ${artistId}`);
   }
 
-  return {
-    sheetId: row.sheetId?.trim(),
-    pushoverToken: row.pushoverToken?.trim(),
-    pushoverUserKey: row.pushoverUserKey?.trim(),
-    telegramChatId: row.telegramChatId?.trim()
-  };
+return {
+  sheetId: row.songListSheetId?.trim(), // 👈 corrected
+  pushoverToken: row.pushoverToken?.trim(),
+  pushoverUserKey: row.pushoverUserKey?.trim(),
+  telegramChatId: row.telegramChatId?.trim()
+};
 }
 
 module.exports = { getArtistConfig };
