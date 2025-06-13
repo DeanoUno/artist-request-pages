@@ -6,7 +6,7 @@ const fs = require('fs');
 const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
 
 async function getArtistConfig(artistId) {
-const keyPath = './netlify/functions/secrets/service-account.json';
+const keyPath = './netlify/functions/secrets/service_account.json';
   const creds = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
 
   const doc = new GoogleSpreadsheet(CONFIG_SHEET_ID);
