@@ -3,6 +3,7 @@
 const { google } = require('googleapis');
 const path = require('path');
 const fs = require('fs');
+const fetch = require('node-fetch'); // needed for sending the POST
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
@@ -70,7 +71,7 @@ if (!sheetId) {
   const now = new Date().toISOString();
   const row = [now, name, song, note, ip, pushoverToken, pushoverUserKey];
 
-  try {
+try {
   console.log("📝 Preparing to append row to sheet:", sheetId);
   console.log("📝 Row data:", row);
 
@@ -84,16 +85,40 @@ if (!sheetId) {
   });
 
   console.log("✅ Append response:", result.data);
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true }),
-    };
 
-  } catch (error) {
-    console.error("❌ Error logging request:", error.message);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to log request' }),
-    };
+  // ✅ Optional: Send Pushover notification
+  if (pushoverToken && pushoverUserKey && song) {
+    try {
+      const message = `${name || 'Someone'} requested: ${song}`;
+      const pushResponse = await fetch('https://api.pushover.net/1/messages.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          token: pushoverToken,
+          user: pushoverUserKey,
+          message,
+          title: '🎶 New Song Request',
+          priority: '0'
+        })
+      });
+
+      const pushText = await pushResponse.text();
+      console.log("📲 Pushover response:", pushText);
+    } catch (pushErr) {
+      console.error("🚫 Failed to send Pushover notification:", pushErr.message);
+    }
   }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ success: true }),
+  };
+
+} catch (error) {
+  console.error("❌ Error logging request:", error.message);
+  return {
+    statusCode: 500,
+    body: JSON.stringify({ error: 'Failed to log request' }),
+  };
+}
 };
