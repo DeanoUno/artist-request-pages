@@ -55,7 +55,7 @@ if (!sheetId) {
 }
 
   // Load service account credentials
-  const keyPath = path.resolve(__dirname, 'secrets', 'service-account.json');
+  const keyPath = path.resolve(__dirname, 'secrets', 'service_account.json');
   const keyFile = fs.readFileSync(keyPath, 'utf8');
   const key = JSON.parse(keyFile);
 
