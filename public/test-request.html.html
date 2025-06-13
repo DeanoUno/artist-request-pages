@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request a Song</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&family=Cabin&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/themes.css" />
+  <link rel="stylesheet" href="/themes/theme-default.css" id="activeTheme">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link id="activeTheme" rel="stylesheet" href="/themes/default.css" />
+
+  
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f5f9ff;
+      color: #222;
+    }
+    .form-container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .logo img {
+      max-width: 100%;
+      height: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #0059d1;
+      font-size: 1.5rem;
+    }
+    label {
+      display: block;
+      margin: 1rem 0 0.25rem;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      background: #ffc107;
+      color: black;
+      font-weight: bold;
+      padding: 0.75rem;
+
+  
+      border: none;
+      border-radius: 8px;
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .thank-you {
+      display: none;
+      text-align: center;
+      color: green;
+      margin-top: 1rem;
+    }
+    .autocomplete-list {
+      position: absolute;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 99;
+      width: 100%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .autocomplete-item {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+    .autocomplete-item:hover {
+      background-color: #f0f8ff;
+    }
+    .song-title {
+      font-weight: bold;
+    }
+    .song-meta {
+      font-size: 0.85em;
+      color: #666;
+    }
+    .autocomplete-active {
+      background-color: #e0f0ff;
+    }
+   .tip-buttons {
+      margin: 2rem 0;
+      text-align: center;
+    }
+
+    .tip-icon-container {
+      display: inline-block;
+      width: 80px;
+      margin: 0 0.5rem;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .tip-icon-container a {
+      text-decoration: none;
+    }
+
+    .tip-icon-container img {
+      height: 60px;
+      object-fit: contain;
+      display: block;
+      margin: auto;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    /* Specific tweak for PayPal icon to align better */
+    .tip-icon-container img[alt="tipPaypal"] {
+      margin-bottom: -8px;
+    }
+
+    .tip-icon-container img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body id="pageBody">
+  <div class="form-container">
+<div class="form-container">
+  <div class="logo">
+    <img id="artistLogo" src="" alt="Artist Logo" />
+  </div>
+
+  <h1 id="artistName">Request a Song</h1>
+
+
+  <form id="requestForm">
+    <label for="name">Your Name (optional)</label>
+    <input name="name" id="name" />
+
+    <!-- Tipping Options -->
+    <div id="tipSection" class="tip-buttons" style="display: none;">
+      <p><strong>Tips are gratefully accepted:</strong></p>
+      <div id="tipLinks"></div>
+    </div>
+
+    <!-- Song Search -->
+    <div style="position: relative; margin-top: 1rem;">
+      <label for="songSearch">Search</label>
+      <input id="songSearch" name="song" placeholder="Start typing a title, artist, or genre..." autocomplete="off" />
+      <div id="autocompleteList" class="autocomplete-list"></div>
+    </div>
+
+    <!-- Full Song List Toggle -->
+    <div style="margin-top: 1rem;">
+      <label for="showAllSongs" style="cursor: pointer; font-weight: bold; display: block; margin-bottom: 0.25rem;">
+        Or check the box to see all songs
+      </label>
+      <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.95em;">
+        <input type="checkbox" id="showAllSongs" style="width: 0.9em; height: 0.9em; margin: 0;" />
+        Full song list
+      </label>
+      <ul id="fullSongList" style="display: none; list-style: none; padding-left: 0; margin-top: 0.5rem;"></ul>
+    </div>
+
+    <!-- Optional Note -->
+    <label for="note">Note for the Artist <span style="font-weight: normal;">(e.g., birthday, anniversary, special request)</span></label>
+    <textarea name="note" id="note" rows="3" placeholder="Optional: Let us know if you're celebrating something special or have a dedication!"></textarea>
+
+    <!-- Hidden Artist ID -->
+    <input type="hidden" name="artistId" id="artistId" />
+
+    <!-- Submit Button -->
+    <button id="sendBtn" type="submit" disabled>Send Request</button>
+  </form>
+
+  <!-- Thank You Message -->
+  <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const artistId = params.get("artist") || "unknown";
+
+  async function loadArtistTheme() {
+    try {
+      const res = await fetch(`/.netlify/functions/load-config?artist_id=${artistId}`);
+      const artist = await res.json();
+
+      if (artist.theme) {
+        const linkTag = document.getElementById("activeTheme");
+        linkTag.href = `/themes/${artist.theme}.css`;
+        console.log("🎨 Applied theme:", artist.theme);
+      }
+    } catch (err) {
+      console.error("Failed to load artist config:", err);
+    }
+  }
+
+  loadArtistTheme();
+</script>
+
+<script>
+let allSongs = [];
+let validSongs = new Set();
+let userIP = '';
+
+fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist'))
+  .then(res => res.json())
+.then(artistData => {
+  window.artist = artistData;
+  window.artistReady = true;
+
+    document.getElementById("artistId").value = artist.artistId;
+    document.getElementById("artistName").textContent = artist.artistName;
+
+    const logoImg = document.getElementById("artistLogo");
+    if (artist.logoUrl && artist.logoUrl.trim()) {
+      logoImg.src = artist.logoUrl.trim();
+      logoImg.style.display = "block";
+    } else {
+      logoImg.style.display = "none";
+    }
+
+      document.getElementById("sendBtn").disabled = false;
+
+const tipSection = document.getElementById("tipSection");
+const tipLinks = document.getElementById("tipLinks");
+
+let hasTips = false;
+["tipPaypal", "tipVenmo", "tipSquare", "tipCashapp", "tipBandcamp"].forEach(method => {
+  if (artist[method]) {
+    hasTips = true;
+
+    const container = document.createElement("div");
+    container.className = "tip-icon-container";
+
+    const link = document.createElement("a");
+    link.href = artist[method];
+    link.target = "_blank";
+    link.rel = "noopener";
+
+    // ⬇️ Add log-tip fetch when clicked
+    link.addEventListener('click', () => {
+      const artistId = window.artist?.artistId || 'unknown';
+      fetch('/.netlify/functions/log-tip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          artistId,
+          method: method.replace(/^tip/, '')  // strip 'tip' prefix, e.g., 'Venmo'
+        })
+      }).catch(err => {
+        console.error('Tip log failed:', err);
+      });
+    });
+
+    const img = document.createElement("img");
+    img.src = `/assets/${method}.png`;
+    img.alt = method;
+
+    // Optional size tweak (if not using CSS height consistently)
+    if (method === "tipVenmo") {
+      img.style.height = "50px";
+    } else if (method === "tipPaypal") {
+      img.style.height = "60px";
+      img.style.marginBottom = "-8px"; // ⬅️ fix vertical alignment
+    }
+
+    link.appendChild(img);
+    container.appendChild(link);
+    tipLinks.appendChild(container);
+  }
+});
+
+if (hasTips) {
+  tipSection.style.display = "block";
+}
+
+const songListURL = `https://opensheet.elk.sh/${artist.songListSheetId}/Songs`;
+
+return fetch(songListURL);
+})
+.then(res => res.json())
+.then(rows => {
+  allSongs = rows.map(row => ({
+    title: row.title || row.Title || '',
+    artist: row.artist || row.Artist || '',
+    genre: row.genre || row.Genre || ''
+  })).filter(song => song.title);
+
+  validSongs = new Set(allSongs.map(song => song.title.toLowerCase().trim()));
+
+  setupAutocomplete(document.getElementById("songSearch"), allSongs);
+
+  // 🔽 Setup full song list display logic
+  const showAllToggle = document.getElementById('showAllSongs');
+  const fullSongList = document.getElementById('fullSongList');
+
+  if (showAllToggle && fullSongList) {
+showAllToggle.addEventListener('change', function () {
+  fullSongList.innerHTML = '';
+  if (this.checked) {
+    allSongs.forEach(song => {
+      const li = document.createElement('li');
+      li.textContent = `${song.title} – ${song.artist} (${song.genre})`;
+      li.style.cursor = 'pointer';
+      li.style.padding = '6px 0';
+      li.style.borderBottom = '1px solid #eee';
+      li.addEventListener('click', () => {
+        document.getElementById('songSearch').value = song.title;
+        fullSongList.style.display = 'none';
+        showAllToggle.checked = false;
+      });
+      fullSongList.appendChild(li);
+    });
+    fullSongList.style.display = 'block';
+  } else {
+    fullSongList.style.display = 'none';
+  }
+});
+  }
+})
+.catch(err => console.error("Error loading config or songs:", err));
+
+// Autocomplete setup
+function setupAutocomplete(input, data) {
+  let currentFocus;
+
+  input.addEventListener("input", function () {
+    closeAllLists();
+    const val = this.value.trim().toLowerCase();
+    if (!val) return false;
+    currentFocus = -1;
+    const list = document.getElementById("autocompleteList");
+    list.innerHTML = '';
+    data.filter(song =>
+      song.title.toLowerCase().includes(val) ||
+      song.artist.toLowerCase().includes(val) ||
+      song.genre.toLowerCase().includes(val)
+    ).forEach(song => {
+      const item = document.createElement("div");
+      item.innerHTML =
+        '<div class="song-title">' + song.title + '</div>' +
+        '<div class="song-meta">' + song.artist + ' • ' + song.genre + '</div>';
+      item.classList.add("autocomplete-item");
+      item.addEventListener("click", function () {
+        input.value = song.title;
+        closeAllLists();
+      });
+      list.appendChild(item);
+    });
+  });
+
+  input.addEventListener("keydown", function (e) {
+    let items = document.querySelectorAll(".autocomplete-item");
+    if (e.key === "ArrowDown") {
+      currentFocus++;
+      setActive(items);
+    } else if (e.key === "ArrowUp") {
+      currentFocus--;
+      setActive(items);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (currentFocus > -1 && items[currentFocus]) {
+        items[currentFocus].click();
+      }
+    }
+  });
+
+  function setActive(items) {
+    if (!items) return;
+    removeActive(items);
+    if (currentFocus >= items.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = items.length - 1;
+    items[currentFocus].classList.add("autocomplete-active");
+  }
+
+  function removeActive(items) {
+    items.forEach(i => i.classList.remove("autocomplete-active"));
+  }
+
+  function closeAllLists(elmnt) {
+    const list = document.getElementById("autocompleteList");
+    if (!elmnt || (elmnt !== list && elmnt !== input)) {
+      list.innerHTML = '';
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    closeAllLists(e.target);
+  });
+}
+fetch('https://api.ipify.org?format=json')
+  .then(res => res.json())
+  .then(data => {
+    userIP = data.ip;
+  })
+  .catch(() => {
+    userIP = 'Unavailable';
+  });
+
+// Form submit handler
+document.getElementById('requestForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!window.artistReady) {
+    alert("Please wait, the artist information is still loading.");
+    return;
+  }
+
+  const form = e.target;
+  const songInput = form.song.value.trim().toLowerCase();
+
+  if (!validSongs.has(songInput)) {
+    alert("Please select a song from the dropdown list.");
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.ip = userIP;
+  data.pushoverToken = artist.pushoverToken;
+  data.pushoverUserKey = artist.pushoverUserKey;
+
+  try {
+const response = await fetch('/.netlify/functions/log-request-clean', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data)
+});
+ // 🔒 Disable the send button to prevent accidental double-click
+    document.getElementById('sendBtn').disabled = true;
+    setTimeout(() => {
+      document.getElementById('sendBtn').disabled = false;
+    }, 5000);
+
+    const msg = document.getElementById('thankYouMessage');
+
+if (response.status === 429) {
+  // Rate limit hit
+  const msg = document.getElementById('thankYouMessage');
+  msg.textContent = "⏳ You've reached the request limit. Please wait a little while and try again.";
+  msg.style.color = 'red';
+  msg.style.display = 'block';
+  setTimeout(() => {
+    msg.style.display = 'none';
+    msg.style.color = 'green'; // reset color for future success
+    msg.textContent = 'Thank you for your request!';
+  }, 7000);
+} else {
+  const result = await response.json();
+  form.reset();
+  const msg = document.getElementById('thankYouMessage');
+  msg.textContent = 'Thank you for your request!';
+  msg.style.color = 'green';
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 5000);
+}
+  } catch (err) {
+    console.error("Submission failed:", err);
+  }
+});
+</script>
+  <footer style="text-align: center; margin-top: 2rem; font-size: 0.9em;">
+<p>
+  Are you a performer?
+  <a href="/partner.html" style="color: #007bff; display: inline-flex; align-items: center; gap: 0.4rem;">
+    Put <strong>rQuestify</strong>
+    <img src="/assets/rQuestify-logo-trans-bckgrnd.png" alt="rQuestify logo" style="height: 24px; vertical-align: middle;" />
+    to work for you
+  </a>
+</p>
+  </footer>
+</body>
+</html>

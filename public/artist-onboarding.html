@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist Onboarding | rQuestify</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cabin', sans-serif;
+      background: #f7f7fb;
+      padding: 2rem;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: auto;
+    }
+    h1 {
+      color: #6a1b9a;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 1rem;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 2rem;
+      background: #6a1b9a;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .message {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎤 Artist Onboarding</h1>
+    <p>Let’s get you set up with rQuestify.</p>
+    <form id="onboardingForm">
+      <label for="artistName">Performer Name</label>
+      <input type="text" id="artistName" name="artistName" required />
+
+      <label for="venmo">Venmo Handle</label>
+      <input type="text" id="venmo" name="venmo" placeholder="@YourHandle" />
+
+      <label for="paypal">PayPal.me Link</label>
+      <input type="text" id="paypal" name="paypal" placeholder="https://paypal.me/yourname" />
+
+      <label for="welcomeMsg">Welcome Message</label>
+      <input type="text" id="welcomeMsg" name="welcomeMsg" placeholder="Say something to your fans..." />
+
+      <button type="submit">Submit</button>
+      <div class="message" id="responseMessage"></div>
+    </form>
+  </div>
+
+<script>
+  document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+
+    const artistName = form.artistName.value.trim();
+    const artistId = artistName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const body = {
+      artistName,
+      artistId, // still required by backend validator, even though it's overridden
+      venmo: form.venmo.value.trim(),
+      paypal: form.paypal.value.trim(),
+      welcomeMsg: form.welcomeMsg.value.trim()
+    };
+
+    const res = await fetch('/.netlify/functions/register-artist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    const result = await res.json();
+    const msg = document.getElementById('responseMessage');
+
+    if (res.ok && result.success) {
+      msg.style.color = 'green';
+      msg.innerHTML = `
+        🎉 Your artist page has been set up!<br>
+        <a href="${result.sheetUrl}" target="_blank">📄 View your Google Sheet</a><br>
+        <a href="${result.requestPage}" target="_blank">🎤 View your rQuestify Request Page</a>
+      `;
+      form.reset();
+    } else {
+      msg.style.color = 'red';
+      msg.textContent = result.error || 'Something went wrong.';
+    }
+  });
+</script>
+</body>
+</html>

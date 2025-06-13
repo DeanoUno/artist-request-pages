@@ -6,7 +6,7 @@ const { GoogleSpreadsheet } = require('google-spreadsheet');
 const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
 
 async function getArtistConfig(artistId) {
-  const keyPath = path.resolve(__dirname, '../secrets/service_account.json');
+const keyPath = path.resolve(__dirname, '_secrets/service_account.json');
   console.log("🔍 __dirname:", __dirname);
   console.log("🔍 keyPath:", keyPath);
 
