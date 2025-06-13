@@ -4,6 +4,7 @@ const { google } = require('googleapis');
 const path = require('path');
 const fs = require('fs');
 const fetch = require('node-fetch'); // needed for sending the POST
+const { getArtistConfig } = require('./helpers/getArtistConfig');
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
@@ -22,10 +23,7 @@ const {
   name = '',
   song = '',
   note = '',
-  ip = '',
-  pushoverToken = '',
-  pushoverUserKey = '',
-  telegramChatId = ''
+  ip = ''
 } = body;
 
 console.log("🎯 artistId:", artistId);
@@ -38,23 +36,24 @@ if (!artistId) {
   };
 }
 
-// 🗺️ Map artistId to their Sheet IDs
-const SHEET_MAP = {
-  deanouno: '1Gd6ONQsxR6m6T9oVCoBhztlkhORCsDrOl8Vf5ZCMqKs', // <-- update with actual ID
-  deanmar: '17sa45keVke_tftdRiCqDHBj_FTcf-d7klRWiYRRauhE',
-  // Add more as needed
-};
+  let artistConfig;
+  try {
+    artistConfig = await getArtistConfig(artistId);
+    console.log("🎛️ Loaded artist config:", artistConfig);
+  } catch (err) {
+    console.error("❌ Failed to load artist config:", err.message);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Artist configuration not found.' }),
+    };
+  }
 
-const sheetId = SHEET_MAP[artistId];
-console.log("📄 Sheet ID for artist:", sheetId);
-
-if (!sheetId) {
-  console.error("❌ Unknown artistId or missing sheet mapping");
-  return {
-    statusCode: 400,
-    body: JSON.stringify({ error: 'Unknown artistId' })
-  };
-}
+  const {
+    sheetId,
+    pushoverToken,
+    pushoverUserKey,
+    telegramChatId
+  } = artistConfig;
 
   // Load service account credentials
   const keyPath = path.resolve(__dirname, 'secrets', 'service_account.json');
