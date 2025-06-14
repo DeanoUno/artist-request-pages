@@ -2,12 +2,12 @@
   --font-size: 18px;
   --border-radius: 15px;
   --shadow-opacity: 0.5;
-  --font-family: 'Segoe UI', sans-serif;
-  --container-bg: #000000;
-  --font-color: #000000;
-  --button-bg: #000000;
-  --button-text: #000000;
+  --font-family: Arial, sans-serif;
+  --container-bg: #dc7a7a;
+  --font-color: #ffffff;
+  --button-bg: #d09093;
+  --button-text: #ffffff;
 }
 body {
-  background: #000000;
+  background: #f2abab;
 }
