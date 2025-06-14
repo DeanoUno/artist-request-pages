@@ -10,3 +10,4 @@ netlify/functions/node_modules/
 netlify/functions/secrets/service_account.json
 netlify/functions/secrets/service_account.json
 netlify/functions/secrets/service_account.json
+netlify/functions/_secrets/
