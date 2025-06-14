@@ -1,27 +1,83 @@
-body.theme-deano h1 {
-  text-align: center;
-  color: #0059d1;
-  font-size: 1.25rem;
-  font-family: 'Segoe UI', sans-serif;
+:root {
+  --font-size: 16px;
+  --border-radius: 12px;
+  --shadow-opacity: 0.2;
+  --font-family: 'Segoe UI', sans-serif;
+  --container-bg: #ffffff;
+  --font-color: #222222;
+  --button-bg: #2e74ff;
+  --button-text: #ffffff;
+  --body-bg: #ffffff; /* ✅ Added default fallback */
 }
 
-body.theme-marvilla {
-  background: #fdf9f3;
-  color: #333;
+/* General Layout */
+body {
+  background: var(--body-bg, var(--container-bg)); /* ✅ Uses theme-defined body color if available */
+  font-size: var(--font-size);
+  font-family: var(--font-family);
+  color: var(--font-color);
+  margin: 0;
+  padding: 1rem;
 }
 
-body.theme-marvilla h1 {
-  color: #c49a6c;
-  font-family: "Georgia", serif;
+/* Main Form Container */
+.form-container {
+  background: var(--container-bg);
+  color: var(--font-color);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, var(--shadow-opacity));
+  max-width: 500px;
+  margin: auto;
 }
 
-body.theme-marvilla button {
-  background: #b58e5c;
-  color: white;
-  font-weight: bold;
+/* Inputs, Textareas, Selects */
+input[type="text"],
+input[type="email"],
+textarea,
+select {
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.5rem 0;
+  font-size: var(--font-size);
+  border-radius: var(--border-radius);
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Buttons */
+button,
+input[type="submit"] {
+  background: var(--button-bg);
+  color: var(--button-text);
+  font-size: var(--font-size);
+  padding: 0.75rem 1.5rem;
   border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
-body.theme-marvilla .tip-logo-button:hover {
-  box-shadow: 0 0 8px rgba(196, 154, 108, 0.6);
+button:hover,
+input[type="submit"]:hover {
+  opacity: 0.9;
+}
+
+/* Song autocomplete results (if applicable) */
+.autocomplete-suggestions {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: var(--border-radius);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.autocomplete-suggestion {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.autocomplete-suggestion:hover {
+  background: var(--button-bg);
+  color: var(--button-text);
 }
