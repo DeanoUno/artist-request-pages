@@ -6,12 +6,23 @@
   <title>RQuestify Theme Designer</title>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bgColor: #f5f5f5;
+      --frame-bg: #e0e0e0;
+      --container-bg: #ffffff;
+      --font-color: #222222;
+      --button-bg: #007bff;
+      --button-text: #ffffff;
+      --border-radius: 12px;
+      --shadow-opacity: 0.2;
+      --font-size: 16px;
+      --font-family: 'Segoe UI', sans-serif;
+    }
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: var(--font-family);
       margin: 0;
       padding: 0;
-      background: #2e2669;
-      color: #ffffff;
+      background: var(--bgColor, #f5f5f5);  /* Uses CSS var */
       display: flex;
       height: 100vh;
     }
@@ -125,6 +136,9 @@
       <summary>Background</summary>
       <label for="bgColor">Page Background</label>
       <input type="color" id="bgColor">
+      
+      <label for="frameBg">Outer Frame Background</label>
+      <input type="color" id="frameBg">
     </details>
 
     <details open>
@@ -164,6 +178,8 @@
     <button onclick="handleSave()">💾 Save Theme</button>
     <button onclick="handleExport()">📤 Export CSS</button>
     <button onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+    <button onclick="generateGallerySnippet()">➕ Add to Theme Gallery</button>
+
     <input type="text" id="themeNameExport" placeholder="filename (e.g. blue)">
   </aside>
 
@@ -183,6 +199,8 @@
     <div class="export-box">
       <textarea class="export-output" readonly></textarea>
       <div class="link-preview" id="linkPreview"></div>
+      <textarea id="gallerySnippet" readonly placeholder="Theme Gallery JSON snippet will appear here" style="margin-top: 1rem; width: 100%; height: 140px; font-family: monospace;"></textarea>
+      <button onclick="copyGallerySnippet()">📋 Copy Gallery Snippet</button>
     </div>
   </main>
   <script>
@@ -197,13 +215,78 @@
       root.style.setProperty('--font-color', document.getElementById('fontColor').value);
       root.style.setProperty('--button-bg', document.getElementById('buttonBg').value);
       root.style.setProperty('--button-text', document.getElementById('buttonText').value);
-      document.body.style.backgroundColor = document.getElementById('bgColor').value;
+      root.style.setProperty('--frame-bg', document.getElementById('frameBg').value);
+      root.style.setProperty('--bgColor', document.getElementById('bgColor').value);
+    }
+    // ✅ Attach applyTheme to all inputs and selects
+      document.querySelectorAll("input, select").forEach(input => {
+        input.addEventListener("input", applyTheme);
+      });
+
+      // ✅ Apply once on load
+      applyTheme();
+  function handleExport() {
+    const rawName = document.getElementById('themeNameExport').value.trim();
+    if (!rawName || /[^a-z0-9\-_\s]/i.test(rawName)) {
+      alert("Please enter a valid theme name using only letters, numbers, spaces, dashes, or underscores.");
+      return;
     }
 
-    function handleExport() {
-      const name = document.getElementById('themeNameExport').value || 'custom-theme';
-      const filename = 'theme-' + name.toLowerCase().replace(/\s+/g, '-') + '.css';
-      const css = `:root {
+    const safeName = rawName.toLowerCase().replace(/\s+/g, '-');
+    const filename = `theme-${safeName}.css`;
+    const css = `:root {
+    --font-size: ${document.getElementById('fontSize').value}px;
+    --border-radius: ${document.getElementById('borderRadius').value}px;
+    --shadow-opacity: ${document.getElementById('shadow').value};
+    --font-family: ${document.getElementById('fontFamily').value};
+    --container-bg: ${document.getElementById('containerBg').value};
+    --font-color: ${document.getElementById('fontColor').value};
+    --button-bg: ${document.getElementById('buttonBg').value};
+    --button-text: ${document.getElementById('buttonText').value};
+    --frame-bg: ${document.getElementById('frameBg').value};
+  }`;
+    document.querySelector('.export-output').value = css;
+
+    const blob = new Blob([css], { type: 'text/css' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+
+    document.getElementById('linkPreview').innerText = `<link rel="stylesheet" href="/themes/${filename}">`;
+  }
+
+  // ✅ Move these outside:
+  function generateGallerySnippet() {
+    const rawName = document.getElementById('themeNameExport').value.trim();
+    if (!rawName) return alert("Please enter a theme name first.");
+
+    const safeName = rawName.toLowerCase().replace(/\s+/g, '-');
+    const bg = document.getElementById('bgColor').value;
+    const textColor = document.getElementById('fontColor').value;
+    const frameBg = document.getElementById('frameBg').value;
+
+    const snippet = `{
+    "name": "${safeName}",
+    "label": "${rawName}",
+    "description": "Describe this theme...",
+    "filename": "theme-${safeName}.css",
+    "previewStyle": "background: linear-gradient(${frameBg}, ${bg}); color: ${textColor};"
+  }`;
+    document.getElementById('gallerySnippet').value = snippet;
+  }
+
+  function copyGallerySnippet() {
+    const snippet = document.getElementById('gallerySnippet').value;
+    if (!snippet) return;
+    navigator.clipboard.writeText(snippet).then(() => {
+      alert("Theme gallery snippet copied to clipboard!");
+    });
+  }
+
+    const safeName = rawName.toLowerCase().replace(/\s+/g, '-');
+    const filename = `theme-${safeName}.css`;
+    const css = `:root {
   --font-size: ${document.getElementById('fontSize').value}px;
   --border-radius: ${document.getElementById('borderRadius').value}px;
   --shadow-opacity: ${document.getElementById('shadow').value};
@@ -212,10 +295,8 @@
   --font-color: ${document.getElementById('fontColor').value};
   --button-bg: ${document.getElementById('buttonBg').value};
   --button-text: ${document.getElementById('buttonText').value};
+  --frame-bg: ${document.getElementById('frameBg').value};
 }
-body {
-  background: ${document.getElementById('bgColor').value};
-}`;
       document.querySelector('.export-output').value = css;
 
       const blob = new Blob([css], { type: 'text/css' });
@@ -293,7 +374,9 @@ body {
       '--font-color': /--font-color:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
       '--button-bg': /--button-bg:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
       '--button-text': /--button-text:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
-      '--bg': /background:\s*(#[0-9a-fA-F]{3,6})/.exec(css)
+      '--frame-bg': /--frame-bg:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
+      '--bgColor': /background:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
+
     };
 
     for (const key in vars) {
@@ -319,7 +402,8 @@ body {
     document.getElementById('fontColor').value = vars['--font-color']?.[1] || '#ffffff';
     document.getElementById('buttonBg').value = vars['--button-bg']?.[1] || '#ffc107';
     document.getElementById('buttonText').value = vars['--button-text']?.[1] || '#000000';
-    document.getElementById('bgColor').value = vars['--bg']?.[1] || '#2e2669';
+    document.getElementById('bgColor').value = vars['--bgColor']?.[1] || '#f5f5f5';
+    document.getElementById('frameBg').value = vars['--frame-bg']?.[1] || '#000000';
 
     applyTheme();
   }
