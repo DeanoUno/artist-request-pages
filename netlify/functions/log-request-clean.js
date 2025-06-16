@@ -36,40 +36,41 @@ if (!artistId) {
   };
 }
 
-  let artistConfig;
-  try {
-    artistConfig = await getArtistConfig(artistId);
-    console.log("🎛️ Loaded artist config:", artistConfig);
-  } catch (err) {
-    console.error("❌ Failed to load artist config:", err.message);
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Artist configuration not found.' }),
-    };
-  }
 
-  const {
-    sheetId,
-    pushoverToken,
-    pushoverUserKey,
-    telegramChatId
-  } = artistConfig;
+      // Load service account credentials
+    const keyPath = path.resolve(__dirname, '_secrets/service_account.json');
+      const keyFile = fs.readFileSync(keyPath, 'utf8');
+      const key = JSON.parse(keyFile);
 
-  // Load service account credentials
-const keyPath = path.resolve(__dirname, '_secrets/service_account.json');
-  const keyFile = fs.readFileSync(keyPath, 'utf8');
-  const key = JSON.parse(keyFile);
+      const jwtClient = new google.auth.JWT({
+        email: key.client_email,
+        key: key.private_key,
+        scopes: SCOPES,
+      });
+       const sheets = google.sheets({ version: 'v4', auth: jwtClient });
 
-  const jwtClient = new google.auth.JWT({
-    email: key.client_email,
-    key: key.private_key,
-    scopes: SCOPES,
-  });
+      let artistConfig;
+      try {
+      artistConfig = await getArtistConfig(artistId, sheets);
+        console.log("🎛️ Loaded artist config:", artistConfig);
+      } catch (err) {
+        console.error("❌ Failed to load artist config:", err.message);
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'Artist configuration not found.' }),
+        };
+      }
 
-  const sheets = google.sheets({ version: 'v4', auth: jwtClient });
+      const {
+        sheetId,
+        pushoverToken,
+        pushoverUserKey,
+        telegramChatId
+      } = artistConfig;
 
-const now = new Date().toISOString();
-const row = [now, name, song, note, ip, pushoverToken, pushoverUserKey];
+
+    const now = new Date().toISOString();
+    const row = [now, name, song, note, ip, pushoverToken, pushoverUserKey];
 
 // ⛔ Rate limiting block STARTS here
 try {
