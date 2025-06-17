@@ -1,0 +1,12 @@
+:root {
+  --bgColor: #1a1a1a;
+  --frame-bg: #42599e;
+  --container-bg: #6788cb;
+  --font-color: #e3d9d9;
+  --button-bg: #2d4dcd;
+  --button-text: #ffffff;
+  --border-radius: 25px;
+  --shadow-opacity: 0.95;
+  --font-size: 16px;
+  --font-family: 'Georgia', serif;
+}

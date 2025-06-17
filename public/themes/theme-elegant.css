@@ -1,0 +1,12 @@
+:root {
+  --bgColor: rgb(250, 248, 245);           /* light parchment */
+  --frame-bg: rgb(230, 224, 212);          /* antique ivory */
+  --container-bg: rgb(255, 255, 255);      /* crisp white */
+  --font-color: rgb(51, 51, 51);           /* charcoal */
+  --button-bg: rgb(102, 0, 102);           /* deep plum */
+  --button-text: rgb(255, 255, 255);       /* white */
+  --border-radius: 16px;
+  --shadow-opacity: 0.3;
+  --font-size: 17px;
+  --font-family: 'Georgia', serif;
+}

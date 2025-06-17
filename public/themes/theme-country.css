@@ -1,0 +1,12 @@
+:root {
+  --bgColor: rgb(252, 243, 220);           /* haystack beige */
+  --frame-bg: rgb(204, 173, 115);          /* golden straw */
+  --container-bg: rgb(255, 250, 240);      /* parchment cream */
+  --font-color: rgb(85, 54, 20);           /* saddle brown */
+  --button-bg: rgb(160, 82, 45);           /* sienna */
+  --button-text: rgb(255, 255, 255);       /* white */
+  --border-radius: 10px;
+  --shadow-opacity: 0.2;
+  --font-size: 17px;
+  --font-family: 'Palatino Linotype', serif;
+}

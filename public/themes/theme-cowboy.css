@@ -1,0 +1,13 @@
+:root {
+  --font-size: 15px;
+  --border-radius: 6px;
+  --shadow-opacity: 1;
+  --font-family: 'Segoe UI', sans-serif;
+  --container-bg: #974e4e;
+  --font-color: #dcdbdb;
+  --button-bg: #dbc900;
+  --button-text: #000000;
+}
+body {
+  background: #5b3939;
+}

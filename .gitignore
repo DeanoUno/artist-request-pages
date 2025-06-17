@@ -1,13 +1,9 @@
 # Ignore sensitive credentials
-netlify/functions/secrets/service-account.json
+netlify/functions/_secrets/service_account.json
 
 # Ignore node_modules
 netlify/functions/node_modules/
 .DS_Store
-› 
+
 # Local Netlify folder
 .netlify
-netlify/functions/secrets/service_account.json
-netlify/functions/secrets/service_account.json
-netlify/functions/secrets/service_account.json
-netlify/functions/_secrets/

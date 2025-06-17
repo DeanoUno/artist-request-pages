@@ -1,0 +1,12 @@
+:root {
+  --bgColor: rgb(240, 229, 210);         /* warm sand */
+  --frame-bg: rgb(173, 216, 230);        /* horizon blue */
+  --container-bg: rgb(255, 255, 255);    /* white for clarity */
+  --font-color: rgb(62, 80, 84);         /* soft gray-blue */
+  --button-bg: rgb(91, 192, 235);        /* ocean blue */
+  --button-text: rgb(255, 255, 255);     /* white text */
+  --border-radius: 14px;
+  --shadow-opacity: 0.25;
+  --font-size: 17px;
+  --font-family: 'Cabin', sans-serif;
+}

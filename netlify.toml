@@ -5,13 +5,13 @@ command = "echo 'No build step required.'"
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-included_files = [
-  "netlify/functions/_secrets/**",   
-  "netlify/functions/helpers/**"
-]
-  
-  [functions."*"]
-    external_node_modules = ["googleapis"]
+  included_files = [
+    "netlify/functions/_secrets/**",
+    "netlify/functions/helpers/**"
+  ]
+
+[functions."*"]
+  external_node_modules = ["googleapis"]
 
 [[plugins]]
 package = "@netlify/plugin-functions-install-core"

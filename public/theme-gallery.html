@@ -2,136 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Theme Gallery - rQuestify</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+  <title>Theme Gallery</title>
   <style>
     body {
-      font-family: 'Cabin', sans-serif;
-      background: #f5f9ff;
-      margin: 0;
+      font-family: sans-serif;
       padding: 2rem;
+      background: #f8f8f8;
     }
+
     h1 {
       text-align: center;
       margin-bottom: 2rem;
     }
-    .theme-grid {
+
+    .gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 2rem;
+      max-width: 1200px;
+      margin: auto;
     }
-    .theme-card {
+
+    .theme-tile {
       background: white;
-      border-radius: 1rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-    }
-    .theme-preview {
-      height: 180px;
-      background: #ddd;
-      display: flex;
       align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: #666;
     }
-    .theme-info {
-      padding: 1rem;
+
+    .theme-tile img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
     }
-    .theme-info h2 {
-      margin: 0;
-      font-size: 1.2rem;
+
+    .theme-tile h3 {
+      margin: 0.75rem 0 0.5rem;
+      font-size: 1.1rem;
     }
-    .theme-info p {
-      font-size: 0.9rem;
-      color: #444;
-    }
-    .theme-info button {
-      margin-top: 1rem;
+
+    .theme-tile button {
+      margin-bottom: 1rem;
       padding: 0.5rem 1rem;
-      border: none;
-      background: #2e74ff;
+      background: #007bff;
       color: white;
+      border: none;
       border-radius: 6px;
       cursor: pointer;
     }
-    .theme-info button:hover {
-      background: #1d5cd5;
+
+    .theme-tile button:hover {
+      background: #005dc0;
+    }
+
+    .copied {
+      color: green;
+      font-size: 0.9rem;
+      margin-top: -0.5rem;
     }
   </style>
 </head>
 <body>
-  <h1>Theme Gallery</h1>
-  <div class="theme-grid">
-    <div class="theme-card">
-      <div class="theme-preview" style="background: linear-gradient(to right, #2e2669, #3b3584); color: white;">
-        Midnight Theme
-      </div>
-      <div class="theme-info">
-        <h2>Midnight</h2>
-        <p>Deep blues with high contrast white and gold. Great for classy events or late-night gigs.</p>
-        <button onclick="copyTheme('theme-midnight.css')">Copy: theme-midnight.css</button>
-      </div>
+  <h1>🎨 Theme Gallery</h1>
+  <div class="gallery">
+    <div class="theme-tile">
+      <img src="/assets/theme-thumbnails/preview-coastal.png" alt="Coastal Theme">
+      <h3>Coastal Theme</h3>
+      <button onclick="copyTheme('theme-coastal', this)">Copy Name</button>
+      <div class="copied" style="display:none;">Copied!</div>
     </div>
-    <div class="theme-card">
-      <div class="theme-preview" style="background: linear-gradient(to right, #fd746c, #ff9068); color: white;">
-        Sunset Theme
-      </div>
-      <div class="theme-info">
-        <h2>Sunset</h2>
-        <p>Warm and inviting tones with soft shadows and casual feel.</p>
-        <button onclick="copyTheme('theme-sunset.css')">Copy: theme-sunset.css</button>
-      </div>
+
+    <div class="theme-tile">
+      <img src="/assets/theme-thumbnails/preview-elegant.png" alt="Elegant Theme">
+      <h3>Elegant Theme</h3>
+      <button onclick="copyTheme('theme-elegant', this)">Copy Name</button>
+      <div class="copied" style="display:none;">Copied!</div>
     </div>
-    <div class="theme-card">
-      <div class="theme-preview" style="background: linear-gradient(to right, #007bff, #66b2ff); color: white;">
-        Blue Theme
-      </div>
-      <div class="theme-info">
-        <h2>Blue</h2>
-        <p>Cool tones of blue with white highlights for a clean and modern vibe.</p>
-        <button onclick="copyTheme('theme-blue.css')">Copy: theme-blue.css</button>
-      </div>
+
+    <div class="theme-tile">
+      <img src="/assets/theme-thumbnails/preview-country.png" alt="Country Theme">
+      <h3>Country Theme</h3>
+      <button onclick="copyTheme('theme-country', this)">Copy Name</button>
+      <div class="copied" style="display:none;">Copied!</div>
     </div>
-    <div class="theme-card">
-      <div class="theme-preview" style="background: linear-gradient(to right, #ff4e50, #f9d423); color: white;">
-        Red Theme
-      </div>
-      <div class="theme-info">
-        <h2>Red</h2>
-        <p>Bold reds blended with warm golds. Great for passionate, high-energy performances.</p>
-        <button onclick="copyTheme('theme-red.css')">Copy: theme-red.css</button>
-      </div>
-    </div>
-    <div class="theme-card">
-      <div class="theme-preview" style="background: linear-gradient(to right, #2c3e50, #bdc3c7); color: white;">
-        Retro Theme
-      </div>
-      <div class="theme-info">
-        <h2>Retro</h2>
-        <p>Grayscale with a nostalgic twist. Best for jazz, folk, and throwback events.</p>
-        <button onclick="copyTheme('theme-retro.css')">Copy: theme-retro.css</button>
-      </div>
-    </div>
-    <div class="theme-card">
-      <div class="theme-preview" style="background: linear-gradient(to right, #ffffff, #e0e0e0); color: #333;">
-        Default Theme
-      </div>
-      <div class="theme-info">
-        <h2>Default</h2>
-        <p>Simple light theme with neutral tones. A safe, universal fallback style.</p>
-        <button onclick="copyTheme('theme-default.css')">Copy: theme-default.css</button>
-      </div>
+
+    <div class="theme-tile">
+      <img src="/assets/theme-thumbnails/preview-urban.png" alt="Urban Theme">
+      <h3>Urban Theme</h3>
+      <button onclick="copyTheme('theme-urban', this)">Copy Name</button>
+      <div class="copied" style="display:none;">Copied!</div>
     </div>
   </div>
 
   <script>
-    function copyTheme(themeName) {
+    function copyTheme(themeName, btn) {
       navigator.clipboard.writeText(themeName).then(() => {
-        alert(`Copied \"${themeName}\" to clipboard! Paste it into the artist config sheet.`);
+        const msg = btn.nextElementSibling;
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 2000);
       });
     }
   </script>

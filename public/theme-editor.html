@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RQuestify Theme Designer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>Theme Editor with Live Preview</title>
+  <style id="liveThemeStyle"></style>
   <style>
     :root {
       --bgColor: #f5f5f5;
-      --frame-bg: #e0e0e0;
+      --frame-bg: #cecdcd;
       --container-bg: #ffffff;
       --font-color: #222222;
       --button-bg: #007bff;
@@ -18,398 +17,225 @@
       --font-size: 16px;
       --font-family: 'Segoe UI', sans-serif;
     }
+
     body {
-      font-family: var(--font-family);
-      margin: 0;
-      padding: 0;
-      background: var(--bgColor, #f5f5f5);  /* Uses CSS var */
-      display: flex;
-      height: 100vh;
-    }
-    aside.controls {
-      width: 280px;
-      background: #1e1b44;
-      padding: 1rem;
-      overflow-y: auto;
-      box-shadow: 4px 0 8px rgba(0, 0, 0, 0.2);
-    }
-    .controls details {
-      margin-bottom: 1rem;
-    }
-    .controls summary {
-      cursor: pointer;
-      font-weight: bold;
-      color: #ffc107;
-    }
-    .controls label {
-      display: block;
-      margin-top: 0.5rem;
-    }
-    .controls input, .controls select, .controls button, .controls select.theme-selector {
-      width: 100%;
-      padding: 4px;
-      margin-top: 0.25rem;
-      border-radius: 4px;
-      border: none;
-      font-size: 1rem;
-    }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      font-family: sans-serif;
       padding: 2rem;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 2rem;
     }
-    .form-container {
-      background: var(--container-bg, #0b0538);
-      padding: 1.5rem;
-      border-radius: var(--border-radius, 16px);
-      box-shadow: 0 4px 12px rgba(0,0,0,var(--shadow-opacity, 0.1));
-      font-size: var(--font-size, 1rem);
-      font-family: var(--font-family, 'Segoe UI', sans-serif);
-      color: var(--font-color, #ffffff);
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 0.5rem 1rem;
+      align-items: center;
+      max-width: 400px;
+      background: white;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      height: fit-content;
+    }
+
+    label {
+      text-align: right;
+    }
+
+    input[type="color"],
+    input[type="range"],
+    select {
       width: 100%;
-      max-width: 500px;
     }
-    .form-container button {
-      background: var(--button-bg, #ffc107);
-      color: var(--button-text, black);
-    }
-    .logo {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .logo img {
-      max-width: 100%;
-      height: auto;
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: var(--input-padding, 0.75rem);
-      margin-top: 0.5rem;
-      border-radius: var(--border-radius, 8px);
-      border: 1px solid #ccc;
-      font-size: var(--font-size, 1rem);
-      font-family: inherit;
-      box-sizing: border-box;
-    }
-    button {
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-    }
-    .thank-you {
-      display: none;
-      text-align: center;
-      color: green;
-      margin-top: 1rem;
-    }
-    .export-box {
-      margin-top: 2rem;
-      width: 100%;
-      max-width: 500px;
-    }
-    textarea.export-output {
-      width: 100%;
-      height: 200px;
-      font-family: monospace;
+
+    .form-preview {
+      font-family: var(--font-family);
+      background: var(--bgColor);
       padding: 1rem;
       border-radius: 8px;
-      border: 1px solid #ccc;
+      width: 100%;
+      max-width: 450px;
     }
-    .link-preview {
-      font-family: monospace;
-      font-size: 0.9rem;
-      background: #111;
-      color: #0f0;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
-      border-radius: 6px;
-      word-break: break-all;
+
+    .outer-frame {
+      background: var(--frame-bg);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, var(--shadow-opacity));
+    }
+
+    .form-container {
+      background: var(--container-bg);
+      color: var(--font-color);
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, var(--shadow-opacity));
+    }
+
+    .form-container label {
+      display: block;
+      margin: 1rem 0 0.25rem;
+    }
+
+    .form-container input,
+    .form-container textarea {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: var(--font-size);
+      border-radius: var(--border-radius);
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .form-container button {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.75rem;
+      font-size: var(--font-size);
+      font-weight: bold;
+      background: var(--button-bg);
+      color: var(--button-text);
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+    }
+
+    .form-container button:hover {
+      opacity: 0.9;
+    }
+
+    .footer {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .download-button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .download-button:hover {
+      background: #218838;
     }
   </style>
 </head>
 <body>
-  <aside class="controls">
-    <details open>
-      <summary>Background</summary>
-      <label for="bgColor">Page Background</label>
-      <input type="color" id="bgColor">
-      
-      <label for="frameBg">Outer Frame Background</label>
-      <input type="color" id="frameBg">
-    </details>
+  <div class="editor-grid">
+    <label for="bgColor">Page BG</label>
+    <input type="color" id="bgColor" value="#f5f5f5">
 
-    <details open>
-      <summary>Container</summary>
-      <label for="containerBg">Container Background</label>
-      <input type="color" id="containerBg">
-      <label for="fontColor">Font Color</label>
-      <input type="color" id="fontColor">
-      <label for="fontSize">Font Size</label>
-      <input type="range" id="fontSize" min="12" max="24">
-      <label for="borderRadius">Corner Radius</label>
-      <input type="range" id="borderRadius" min="0" max="30">
-      <label for="shadow">Shadow Intensity</label>
-      <input type="range" id="shadow" min="0" max="1" step="0.05">
-      <label for="fontFamily">Font Family</label>
-      <select id="fontFamily">
-        <option value="'Segoe UI', sans-serif">Segoe UI</option>
-        <option value="Arial, sans-serif">Arial</option>
-        <option value="Georgia, serif">Georgia</option>
-        <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans</option>
-        <option value="Courier New, monospace">Courier New</option>
-      </select>
-    </details>
+    <label for="frameBg">Outer Frame BG</label>
+    <input type="color" id="frameBg" value="#e0e0e0">
 
-    <details>
-      <summary>Button</summary>
-      <label for="buttonBg">Button Background</label>
-      <input type="color" id="buttonBg">
-      <label for="buttonText">Button Text Color</label>
-      <input type="color" id="buttonText">
-    </details>
+    <label for="containerBg">Form BG</label>
+    <input type="color" id="containerBg" value="#ffffff">
 
-    <label for="themeSelect">🎨 Load Existing Theme</label>
-    <select id="themeSelect" class="theme-selector"></select>
-    <button onclick="loadSelectedTheme()">📂 Load Selected</button>
-    <button onclick="deleteSelectedTheme()">🗑️ Delete Selected</button>
-    <button onclick="handleSave()">💾 Save Theme</button>
-    <button onclick="handleExport()">📤 Export CSS</button>
-    <button onclick="copyToClipboard()">📋 Copy to Clipboard</button>
-    <button onclick="generateGallerySnippet()">➕ Add to Theme Gallery</button>
+    <label for="fontColor">Font Color</label>
+    <input type="color" id="fontColor" value="#222222">
 
-    <input type="text" id="themeNameExport" placeholder="filename (e.g. blue)">
-  </aside>
+    <label for="buttonBg">Button BG</label>
+    <input type="color" id="buttonBg" value="#007bff">
 
-  <main>
-    <div class="form-container">
-      <div class="logo">
-        <img src="/assets/rQuestify-logo-trans-bckgrnd.png" alt="Logo">
+    <label for="buttonText">Button Text</label>
+    <input type="color" id="buttonText" value="#ffffff">
+
+    <label for="borderRadius">Border Radius</label>
+    <input type="range" id="borderRadius" min="0" max="30" value="12">
+
+    <label for="shadowOpacity">Shadow Opacity</label>
+    <input type="range" id="shadowOpacity" min="0" max="1" step="0.05" value="0.2">
+
+    <label for="fontFamily">Font</label>
+    <select id="fontFamily">
+      <option value="'Segoe UI', sans-serif">Segoe UI</option>
+      <option value="'Comic Neue', cursive">Comic Neue</option>
+      <option value="'Cabin', sans-serif">Cabin</option>
+      <option value="'Georgia', serif">Georgia</option>
+      <option value="'Courier New', monospace">Courier New</option>
+    </select>
+
+    <label for="fontSize">Font Size</label>
+    <input type="range" id="fontSize" min="12" max="24" value="16">
+
+    <button class="download-button" onclick="downloadThemeCSS()">📥 Download Theme CSS</button>
+  </div>
+
+  <div class="form-preview">
+    <div class="outer-frame">
+      <div class="form-container">
+        <h3>Request a Song</h3>
+        <label>Your Name</label>
+        <input type="text" placeholder="e.g. Sam" />
+
+        <label>Search for a Song</label>
+        <input type="text" placeholder="Start typing title or artist..." />
+
+        <label>Note for Artist</label>
+        <textarea rows="3" placeholder="e.g. It's our anniversary!"></textarea>
+
+        <button>Send Request</button>
       </div>
-      <h2>Request a Song</h2>
-      <input placeholder="Your name">
-      <input placeholder="Song name">
-      <textarea placeholder="Note to artist"></textarea>
-      <button>Send Request</button>
-      <div class="thank-you">Thank you for your request!</div>
     </div>
+  </div>
 
-    <div class="export-box">
-      <textarea class="export-output" readonly></textarea>
-      <div class="link-preview" id="linkPreview"></div>
-      <textarea id="gallerySnippet" readonly placeholder="Theme Gallery JSON snippet will appear here" style="margin-top: 1rem; width: 100%; height: 140px; font-family: monospace;"></textarea>
-      <button onclick="copyGallerySnippet()">📋 Copy Gallery Snippet</button>
-    </div>
-  </main>
   <script>
-    const root = document.documentElement;
+    const root = document.documentElement.style;
+    const liveStyle = document.getElementById('liveThemeStyle');
+    const cssKeys = [
+      'bgColor', 'frame-bg', 'container-bg', 'font-color',
+      'button-bg', 'button-text', 'border-radius',
+      'shadow-opacity', 'font-size', 'font-family'
+    ];
 
-    function applyTheme() {
-      root.style.setProperty('--font-size', document.getElementById('fontSize').value + 'px');
-      root.style.setProperty('--border-radius', document.getElementById('borderRadius').value + 'px');
-      root.style.setProperty('--shadow-opacity', document.getElementById('shadow').value);
-      root.style.setProperty('--font-family', document.getElementById('fontFamily').value);
-      root.style.setProperty('--container-bg', document.getElementById('containerBg').value);
-      root.style.setProperty('--font-color', document.getElementById('fontColor').value);
-      root.style.setProperty('--button-bg', document.getElementById('buttonBg').value);
-      root.style.setProperty('--button-text', document.getElementById('buttonText').value);
-      root.style.setProperty('--frame-bg', document.getElementById('frameBg').value);
-      root.style.setProperty('--bgColor', document.getElementById('bgColor').value);
-    }
-    // ✅ Attach applyTheme to all inputs and selects
-      document.querySelectorAll("input, select").forEach(input => {
-        input.addEventListener("input", applyTheme);
-      });
-
-      // ✅ Apply once on load
-      applyTheme();
-  function handleExport() {
-    const rawName = document.getElementById('themeNameExport').value.trim();
-    if (!rawName || /[^a-z0-9\-_\s]/i.test(rawName)) {
-      alert("Please enter a valid theme name using only letters, numbers, spaces, dashes, or underscores.");
-      return;
-    }
-
-    const safeName = rawName.toLowerCase().replace(/\s+/g, '-');
-    const filename = `theme-${safeName}.css`;
-    const css = `:root {
-    --font-size: ${document.getElementById('fontSize').value}px;
-    --border-radius: ${document.getElementById('borderRadius').value}px;
-    --shadow-opacity: ${document.getElementById('shadow').value};
-    --font-family: ${document.getElementById('fontFamily').value};
-    --container-bg: ${document.getElementById('containerBg').value};
-    --font-color: ${document.getElementById('fontColor').value};
-    --button-bg: ${document.getElementById('buttonBg').value};
-    --button-text: ${document.getElementById('buttonText').value};
-    --frame-bg: ${document.getElementById('frameBg').value};
-  }`;
-    document.querySelector('.export-output').value = css;
-
-    const blob = new Blob([css], { type: 'text/css' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
-
-    document.getElementById('linkPreview').innerText = `<link rel="stylesheet" href="/themes/${filename}">`;
-  }
-
-  // ✅ Move these outside:
-  function generateGallerySnippet() {
-    const rawName = document.getElementById('themeNameExport').value.trim();
-    if (!rawName) return alert("Please enter a theme name first.");
-
-    const safeName = rawName.toLowerCase().replace(/\s+/g, '-');
-    const bg = document.getElementById('bgColor').value;
-    const textColor = document.getElementById('fontColor').value;
-    const frameBg = document.getElementById('frameBg').value;
-
-    const snippet = `{
-    "name": "${safeName}",
-    "label": "${rawName}",
-    "description": "Describe this theme...",
-    "filename": "theme-${safeName}.css",
-    "previewStyle": "background: linear-gradient(${frameBg}, ${bg}); color: ${textColor};"
-  }`;
-    document.getElementById('gallerySnippet').value = snippet;
-  }
-
-  function copyGallerySnippet() {
-    const snippet = document.getElementById('gallerySnippet').value;
-    if (!snippet) return;
-    navigator.clipboard.writeText(snippet).then(() => {
-      alert("Theme gallery snippet copied to clipboard!");
-    });
-  }
-
-    const safeName = rawName.toLowerCase().replace(/\s+/g, '-');
-    const filename = `theme-${safeName}.css`;
-    const css = `:root {
-  --font-size: ${document.getElementById('fontSize').value}px;
-  --border-radius: ${document.getElementById('borderRadius').value}px;
-  --shadow-opacity: ${document.getElementById('shadow').value};
-  --font-family: ${document.getElementById('fontFamily').value};
-  --container-bg: ${document.getElementById('containerBg').value};
-  --font-color: ${document.getElementById('fontColor').value};
-  --button-bg: ${document.getElementById('buttonBg').value};
-  --button-text: ${document.getElementById('buttonText').value};
-  --frame-bg: ${document.getElementById('frameBg').value};
-}
-      document.querySelector('.export-output').value = css;
-
-      const blob = new Blob([css], { type: 'text/css' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-
-      document.getElementById('linkPreview').innerText = `<link rel="stylesheet" href="/themes/${filename}">`;
-    }
-
-    document.querySelectorAll('.controls input, .controls select').forEach(el => {
-      el.addEventListener('input', applyTheme);
-    });
-
-    populateThemeDropdown();
-
-    if (localStorage.getItem('rquestify-theme')) {
-      document.getElementById('themeSelect').value = 'rquestify-theme';
-      loadSelectedTheme();
-    } else {
-      applyTheme();
-    }
-  </script>
-<script>
-  const themePrefix = 'rquestify-theme-';
-
-  function handleSave() {
-    const name = document.getElementById('themeNameExport').value.trim();
-    if (!name) return alert("Please enter a theme name before saving.");
-    const key = themePrefix + name.toLowerCase().replace(/\s+/g, '-');
-    const css = document.querySelector('.export-output').value;
-    localStorage.setItem(key, css);
-    populateThemeDropdown();
-    alert(`Theme "${name}" saved!`);
-  }
-
-  function populateThemeDropdown() {
-    const dropdown = document.getElementById('themeSelect');
-    dropdown.innerHTML = '<option value="">-- Select Theme --</option>';
-    Object.keys(localStorage).forEach(k => {
-      if (k.startsWith(themePrefix)) {
-        const option = document.createElement('option');
-        option.value = k;
-        option.textContent = k.replace(themePrefix, '');
-        dropdown.appendChild(option);
-      }
-    });
-  }
-
-  function loadSelectedTheme() {
-    const key = document.getElementById('themeSelect').value;
-    if (!key) return alert("Please select a theme to load.");
-    const css = localStorage.getItem(key);
-    if (!css) return alert("No theme found.");
-    applyCSSFromString(css);
-  }
-
-  function deleteSelectedTheme() {
-    const key = document.getElementById('themeSelect').value;
-    if (!key) return alert("Please select a theme to delete.");
-    if (confirm("Delete this theme?")) {
-      localStorage.removeItem(key);
-      populateThemeDropdown();
-    }
-  }
-
-  function applyCSSFromString(css) {
-    const vars = {
-      '--font-size': /--font-size:\s*([\d.]+)px/.exec(css),
-      '--border-radius': /--border-radius:\s*([\d.]+)px/.exec(css),
-      '--shadow-opacity': /--shadow-opacity:\s*([\d.]+)/.exec(css),
-      '--font-family': /--font-family:\s*([^;]+)/.exec(css),
-      '--container-bg': /--container-bg:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
-      '--font-color': /--font-color:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
-      '--button-bg': /--button-bg:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
-      '--button-text': /--button-text:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
-      '--frame-bg': /--frame-bg:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
-      '--bgColor': /background:\s*(#[0-9a-fA-F]{3,6})/.exec(css),
-
+    const bind = (id, varName, unit = '') => {
+      const el = document.getElementById(id);
+      const update = () => {
+        const val = el.value + unit;
+        root.setProperty(`--${varName}`, val);
+        applyLiveStyle();
+      };
+      el.addEventListener('input', update);
+      update();
     };
 
-    for (const key in vars) {
-      if (vars[key]) {
-        const value = vars[key][1];
-        switch (key) {
-          case '--bg':
-            document.body.style.backgroundColor = value;
-            break;
-          default:
-            root.style.setProperty(key, value);
-            break;
-        }
-      }
+    function applyLiveStyle() {
+      const styles = cssKeys.map(k => `  --${k}: ${getComputedStyle(document.documentElement).getPropertyValue(`--${k}`).trim()};`).join('\n');
+      liveStyle.textContent = `:root {\n${styles}\n}`;
     }
 
-    // Update UI sliders/colors
-    document.getElementById('fontSize').value = parseInt(vars['--font-size']?.[1] || 16);
-    document.getElementById('borderRadius').value = parseInt(vars['--border-radius']?.[1] || 8);
-    document.getElementById('shadow').value = parseFloat(vars['--shadow-opacity']?.[1] || 0.1);
-    document.getElementById('fontFamily').value = vars['--font-family']?.[1]?.trim() || "'Segoe UI', sans-serif";
-    document.getElementById('containerBg').value = vars['--container-bg']?.[1] || '#0b0538';
-    document.getElementById('fontColor').value = vars['--font-color']?.[1] || '#ffffff';
-    document.getElementById('buttonBg').value = vars['--button-bg']?.[1] || '#ffc107';
-    document.getElementById('buttonText').value = vars['--button-text']?.[1] || '#000000';
-    document.getElementById('bgColor').value = vars['--bgColor']?.[1] || '#f5f5f5';
-    document.getElementById('frameBg').value = vars['--frame-bg']?.[1] || '#000000';
+    bind('bgColor', 'bgColor');
+    bind('frameBg', 'frame-bg');
+    bind('containerBg', 'container-bg');
+    bind('fontColor', 'font-color');
+    bind('buttonBg', 'button-bg');
+    bind('buttonText', 'button-text');
+    bind('borderRadius', 'border-radius', 'px');
+    bind('shadowOpacity', 'shadow-opacity');
+    bind('fontSize', 'font-size', 'px');
+    bind('fontFamily', 'font-family');
 
-    applyTheme();
-  }
-
-  populateThemeDropdown();
-</script>
-
+    function downloadThemeCSS() {
+      const cssVars = getComputedStyle(document.documentElement);
+      const lines = cssKeys.map(k => `  --${k}: ${cssVars.getPropertyValue(`--${k}`).trim()};`);
+      const blob = new Blob([
+        ':root {\n' + lines.join('\n') + '\n}'],
+        { type: 'text/css' }
+      );
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'custom-theme.css';
+      a.click();
+    }
+  </script>
 </body>
 </html>

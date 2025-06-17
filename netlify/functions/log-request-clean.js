@@ -36,90 +36,53 @@ if (!artistId) {
   };
 }
 
+  let artistConfig;
+  try {
+    artistConfig = await getArtistConfig(artistId);
+    console.log("🎛️ Loaded artist config:", artistConfig);
+  } catch (err) {
+    console.error("❌ Failed to load artist config:", err.message);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Artist configuration not found.' }),
+    };
+  }
 
-      // Load service account credentials
-    const keyPath = path.resolve(__dirname, '_secrets/service_account.json');
-      const keyFile = fs.readFileSync(keyPath, 'utf8');
-      const key = JSON.parse(keyFile);
+  const {
+    sheetId,
+    pushoverToken,
+    pushoverUserKey,
+    telegramChatId
+  } = artistConfig;
 
-      const jwtClient = new google.auth.JWT({
-        email: key.client_email,
-        key: key.private_key,
-        scopes: SCOPES,
-      });
-       const sheets = google.sheets({ version: 'v4', auth: jwtClient });
+  // Load service account credentials
+const keyPath = path.resolve(__dirname, '_secrets/service_account.json');
+  const keyFile = fs.readFileSync(keyPath, 'utf8');
+  const key = JSON.parse(keyFile);
 
-      let artistConfig;
-      try {
-      artistConfig = await getArtistConfig(artistId, sheets);
-        console.log("🎛️ Loaded artist config:", artistConfig);
-      } catch (err) {
-        console.error("❌ Failed to load artist config:", err.message);
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: 'Artist configuration not found.' }),
-        };
-      }
-
-      const {
-        sheetId,
-        pushoverToken,
-        pushoverUserKey,
-        telegramChatId
-      } = artistConfig;
-
-
-    const now = new Date().toISOString();
-    const row = [now, name, song, note, ip, pushoverToken, pushoverUserKey];
-
-// ⛔ Rate limiting block STARTS here
-try {
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: sheetId,
-    range: 'Requests!A2:F',
+  const jwtClient = new google.auth.JWT({
+    email: key.client_email,
+    key: key.private_key,
+    scopes: SCOPES,
   });
 
-    const recentRows = (response.data.values || []).filter(r => r[4] === ip);
-    const nowTime = Date.now();
+  const sheets = google.sheets({ version: 'v4', auth: jwtClient });
 
-    const recentTimestamps = recentRows.map(r => new Date(r[0]).getTime()).sort((a, b) => b - a);
+  const now = new Date().toISOString();
+  const row = [now, name, song, note, ip, pushoverToken, pushoverUserKey];
 
-    // ✅ Ignore double-clicks within 10 seconds
-    if (recentTimestamps.length && nowTime - recentTimestamps[0] < 10 * 1000) {
-      console.warn(`⏱️ Ignoring duplicate request from ${ip} within 10 seconds`);
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ success: true, ignored: true })
-      };
-    }
+try {
+  console.log("📝 Preparing to append row to sheet:", sheetId);
+  console.log("📝 Row data:", row);
 
-    const countIn = mins => recentTimestamps.filter(t => nowTime - t < mins * 60 * 1000).length;
-
-    if (countIn(4 * 60) >= 5 || countIn(60) >= 3 || countIn(30) >= 2) {
-      console.warn(`⛔ Rate limit hit for IP ${ip}`);
-      return {
-        statusCode: 429,
-        body: JSON.stringify({ error: 'Too many requests from this IP.' })
-      };
-    }
-  } catch (rateErr) {
-    console.error("⚠️ Rate limiting check failed (non-blocking):", rateErr.message);
-  }
-  // ⛔ Rate limiting block ENDS here
-
-  // ⬇️ Now safe to log the request
-  try {
-    console.log("📝 Preparing to append row to sheet:", sheetId);
-    console.log("📝 Row data:", row);
-
-    const result = await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: 'Requests!A1',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [row],
-      },
-    });
+  const result = await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: 'Requests!A1',
+    valueInputOption: 'USER_ENTERED',
+    requestBody: {
+      values: [row],
+    },
+  });
 
   console.log("✅ Append response:", result.data);
 
