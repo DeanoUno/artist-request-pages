@@ -6,141 +6,167 @@
   <title>Request a Song</title>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&family=Cabin&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/themes.css" />
-  <link rel="stylesheet" href="/themes/theme-default.css" id="activeTheme">
+<link rel="stylesheet" href="" id="activeTheme">
   <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 1rem;
-      background: #f5f9ff;
-      color: #222;
-    }
-    .form-container {
-      max-width: 500px;
-      margin: auto;
-      background: white;
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .logo {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .logo img {
-      max-width: 100%;
-      height: auto;
-    }
-    h1 {
-      text-align: center;
-      color: #0059d1;
-      font-size: 1.5rem;
-    }
-    label {
-      display: block;
-      margin: 1rem 0 0.25rem;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-      font-size: 1rem;
-    }
-    button {
-      width: 100%;
-      background: #ffc107;
-      color: black;
-      font-weight: bold;
-      padding: 0.75rem;ls netlify/functions/secrets/service_account.json
+<style>
+  body {
+    font-family: var(--font-family);
+    background: var(--container-bg);
+    color: var(--font-color);
+    margin: 0;
+    padding: 1rem;
+    font-size: var(--font-size);
+  }
+ .outer-frame {
+    background-color: var(--frame-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    max-width: 600px;
+    margin: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  .form-container {
+    max-width: 500px;
+    margin: auto;
+    background: var(--container-bg);
+    color: var(--font-color);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0,0,0,var(--shadow-opacity));
+  }
 
-  
-      border: none;
-      border-radius: 8px;
-      margin-top: 1.5rem;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .thank-you {
-      display: none;
-      text-align: center;
-      color: green;
-      margin-top: 1rem;
-    }
-    .autocomplete-list {
-      position: absolute;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #fff;
-      max-height: 250px;
-      overflow-y: auto;
-      z-index: 99;
-      width: 100%;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    .autocomplete-item {
-      padding: 10px;
-      cursor: pointer;
-      border-bottom: 1px solid #eee;
-    }
-    .autocomplete-item:hover {
-      background-color: #f0f8ff;
-    }
-    .song-title {
-      font-weight: bold;
-    }
-    .song-meta {
-      font-size: 0.85em;
-      color: #666;
-    }
-    .autocomplete-active {
-      background-color: #e0f0ff;
-    }
-   .tip-buttons {
-      margin: 2rem 0;
-      text-align: center;
-    }
+  .logo {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
 
-    .tip-icon-container {
-      display: inline-block;
-      width: 80px;
-      margin: 0 0.5rem;
-      text-align: center;
-      vertical-align: middle;
-    }
+  .logo img {
+    max-width: 100%;
+    height: auto;
+  }
 
-    .tip-icon-container a {
-      text-decoration: none;
-    }
+  h1 {
+    text-align: center;
+    color: var(--font-color);
+    font-size: 1.5rem;
+  }
 
-    .tip-icon-container img {
-      height: 60px;
-      object-fit: contain;
-      display: block;
-      margin: auto;
-      transition: transform 0.2s ease-in-out;
-    }
+  label {
+    display: block;
+    margin: 1rem 0 0.25rem;
+  }
 
-    /* Specific tweak for PayPal icon to align better */
-    .tip-icon-container img[alt="tipPaypal"] {
-      margin-bottom: -8px;
-    }
+  input,
+  textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: var(--font-size);
+  }
 
-    .tip-icon-container img:hover {
-      transform: scale(1.05);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    }
-  </style>
+  button {
+    width: 100%;
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-weight: bold;
+    padding: 0.75rem;
+    border: none;
+    border-radius: var(--border-radius);
+    margin-top: 1.5rem;
+    font-size: var(--font-size);
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  button:hover {
+    opacity: 0.9;
+  }
+
+  .thank-you {
+    display: none;
+    text-align: center;
+    color: green;
+    margin-top: 1rem;
+  }
+
+  .autocomplete-list {
+    position: absolute;
+    border: 1px solid #ac6e6e;
+    border-radius: var(--border-radius);
+    background: #fff;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 99;
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, var(--shadow-opacity));
+  }
+
+  .autocomplete-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+  }
+
+  .autocomplete-item:hover {
+    background-color: #f0f8ff;
+  }
+
+  .song-title {
+    font-weight: bold;
+  }
+
+  .song-meta {
+    font-size: 0.85em;
+    color: #666;
+  }
+
+  .autocomplete-active {
+    background-color: #e0f0ff;
+  }
+
+  .tip-buttons {
+    margin: 2rem 0;
+    text-align: center;
+  }
+
+  .tip-icon-container {
+    display: inline-block;
+    width: 80px;
+    margin: 0 0.5rem;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .tip-icon-container a {
+    text-decoration: none;
+  }
+
+  .tip-icon-container img {
+    height: 60px;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .tip-icon-container img[alt="tipPaypal"] {
+    margin-bottom: -8px;
+  }
+
+  .tip-icon-container img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+</style>
 </head>
 <body id="pageBody">
-  <div class="form-container">
-<div class="form-container">
-  <div class="logo">
-    <img id="artistLogo" src="" alt="Artist Logo" />
-  </div>
-
+  <div class="outer-frame">
+    <div class="form-container">
+      <div class="logo">
+        <img id="artistLogo" src="" alt="Artist Logo" />
+      </div>
   <h1 id="artistName">Request a Song</h1>
 
   <form id="requestForm">
@@ -152,6 +178,9 @@
       <p><strong>Tips are gratefully accepted:</strong></p>
       <div id="tipLinks"></div>
     </div>
+  <h1 style="text-align: center; color: var(--font-color); font-size: 1.5rem; margin-top: 0.5rem;">
+    Request a Song
+  </h1>
 
     <!-- Song Search -->
     <div style="position: relative; margin-top: 1rem;">
@@ -187,18 +216,46 @@
   <div class="thank-you" id="thankYouMessage">Thank you for your request!</div>
 </div>
 
-
 <script>
-let allSongs = [];
-let validSongs = new Set();
-let userIP = '';
+  const params = new URLSearchParams(window.location.search);
+  const artistId = params.get("artist") || "unknown";
 
-fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist'))
-  .then(res => res.json())
-.then(artistData => {
-  window.artist = artistData;
-  window.artistReady = true;
+  // Dynamically update the theme CSS file based on artist config
+  async function loadArtistTheme() {
+    try {
+      const res = await fetch(`/.netlify/functions/load-config?artist_id=${artistId}`);
+      const artist = await res.json();
+      window.artist = artist;
+      window.artistReady = true;
 
+      if (artist.theme) {
+        const linkTag = document.getElementById("activeTheme");
+        linkTag.href = `/themes/${artist.theme}.css`;
+        console.log("🎨 Applied theme:", artist.theme);
+      }
+    } catch (err) {
+      console.error("Failed to load artist theme:", err);
+    }
+  }
+
+  loadArtistTheme();
+</script>
+
+  <script>
+  let allSongs = [];
+  let validSongs = new Set();
+  let userIP = '';
+
+  fetch('/.netlify/functions/load-config?artist_id=' + new URLSearchParams(window.location.search).get('artist'))
+    .then(res => res.json())
+    .then(artistData => {
+    window.artist = artistData;
+    window.artistReady = true;
+      const themeName = artist.selectedTheme || 'theme-default';
+      const themeLink = document.getElementById('activeTheme');
+    if (themeLink) {
+      themeLink.href = `/themes/${themeName}.css`;
+    }
     document.getElementById("artistId").value = artist.artistId;
     document.getElementById("artistName").textContent = artist.artistName;
 
