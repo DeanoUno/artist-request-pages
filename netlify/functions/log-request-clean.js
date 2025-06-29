@@ -68,8 +68,17 @@ const keyPath = path.resolve(__dirname, '_secrets/service_account.json');
 
   const sheets = google.sheets({ version: 'v4', auth: jwtClient });
 
-  const now = new Date().toISOString();
-  const row = [now, name, song, note, ip, pushoverToken, pushoverUserKey];
+  const now = new Date();
+  const formattedTime = now.toLocaleString('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/New_York' // Change to your preferred timezone
+  }).replace(',', '');
+  const row = [formattedTime, name, song, note, ip];
 
 try {
   console.log("📝 Preparing to append row to sheet:", sheetId);

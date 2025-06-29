@@ -84,6 +84,30 @@
     opacity: 0.9;
   }
 
+  button.submitting {
+    opacity: 0.6;
+    position: relative;
+  }
+
+  button.submitting::after {
+    content: '';
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1em;
+    height: 1em;
+    border: 2px solid white;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+  }
+
+
   .thank-you {
     display: none;
     text-align: center;
@@ -167,7 +191,6 @@
       <div class="logo">
         <img id="artistLogo" src="" alt="Artist Logo" />
       </div>
-  <h1 id="artistName">Request a Song</h1>
 
   <form id="requestForm">
     <label for="name">Your Name (optional)</label>
@@ -178,9 +201,9 @@
       <p><strong>Tips are gratefully accepted:</strong></p>
       <div id="tipLinks"></div>
     </div>
-  <h1 style="text-align: center; color: var(--font-color); font-size: 1.5rem; margin-top: 0.5rem;">
-    Request a Song
-  </h1>
+    <h1 id="artistName" style="text-align: center; color: var(--font-color); font-size: 1.5rem; margin-top: 0.5rem;">
+      Request a Song
+    </h1>
 
     <!-- Song Search -->
     <div style="position: relative; margin-top: 1rem;">
@@ -202,8 +225,8 @@
     </div>
 
     <!-- Optional Note -->
-    <label for="note">Note for the Artist <span style="font-weight: normal;">(e.g., birthday, anniversary, special request)</span></label>
-    <textarea name="note" id="note" rows="3" placeholder="Optional: Let us know if you're celebrating something special or have a dedication!"></textarea>
+    <label for="note">Note for the Artist </label>
+    <textarea name="note" id="note" rows="3" placeholder="e.g. It's our anniversary!"></textarea>
 
     <!-- Hidden Artist ID -->
     <input type="hidden" name="artistId" id="artistId" />
@@ -253,8 +276,7 @@
     window.artistReady = true;
       const themeName = artist.selectedTheme || 'theme-default';
       const themeLink = document.getElementById('activeTheme');
-    if (themeLink) {
-      themeLink.href = `/themes/${themeName}.css`;
+    if (themeLink) {themeLink.href = `/themes/theme-${themeName}.css`;
     }
     document.getElementById("artistId").value = artist.artistId;
     document.getElementById("artistName").textContent = artist.artistName;
@@ -445,7 +467,7 @@ fetch('https://api.ipify.org?format=json')
     userIP = 'Unavailable';
   });
 
-// Form submit handler
+
 document.getElementById('requestForm').addEventListener('submit', async e => {
   e.preventDefault();
   if (!window.artistReady) {
@@ -455,7 +477,6 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
 
   const form = e.target;
   const songInput = form.song.value.trim().toLowerCase();
-
   if (!validSongs.has(songInput)) {
     alert("Please select a song from the dropdown list.");
     return;
@@ -466,42 +487,49 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
   data.pushoverToken = artist.pushoverToken;
   data.pushoverUserKey = artist.pushoverUserKey;
 
+  const sendBtn = document.getElementById('sendBtn');
+  const originalText = sendBtn.textContent;
+  const msg = document.getElementById('thankYouMessage');
+
+  // 🔒 Disable and show visual feedback
+  sendBtn.disabled = true;
+  sendBtn.textContent = 'Sending...';
+  sendBtn.classList.add('submitting');
+
   try {
-const response = await fetch('/.netlify/functions/log-request-clean', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data)
-});
- // 🔒 Disable the send button to prevent accidental double-click
-    document.getElementById('sendBtn').disabled = true;
+    const response = await fetch('/.netlify/functions/log-request-clean', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (response.status === 429) {
+      msg.textContent = '⏳ You’re submitting requests too quickly. Please wait.';
+      msg.style.color = 'red';
+    } else {
+      msg.textContent = '✅ Thank you for your request!';
+      msg.style.color = 'green';
+      form.reset();
+    }
+
+    msg.style.display = 'block';
     setTimeout(() => {
-      document.getElementById('sendBtn').disabled = false;
+      msg.style.display = 'none';
+      sendBtn.disabled = false;
+      sendBtn.textContent = originalText;
+      sendBtn.classList.remove('submitting');
     }, 5000);
-
-    const msg = document.getElementById('thankYouMessage');
-
-if (response.status === 429) {
-  // Rate limit hit
-  const msg = document.getElementById('thankYouMessage');
-  msg.textContent = "⏳ You've reached the request limit. Please wait a little while and try again.";
-  msg.style.color = 'red';
-  msg.style.display = 'block';
-  setTimeout(() => {
-    msg.style.display = 'none';
-    msg.style.color = 'green'; // reset color for future success
-    msg.textContent = 'Thank you for your request!';
-  }, 7000);
-} else {
-  const result = await response.json();
-  form.reset();
-  const msg = document.getElementById('thankYouMessage');
-  msg.textContent = 'Thank you for your request!';
-  msg.style.color = 'green';
-  msg.style.display = 'block';
-  setTimeout(() => msg.style.display = 'none', 5000);
-}
   } catch (err) {
-    console.error("Submission failed:", err);
+    console.error("❌ Submission failed:", err);
+    msg.textContent = 'Something went wrong. Please try again.';
+    msg.style.color = 'red';
+    msg.style.display = 'block';
+    setTimeout(() => {
+      msg.style.display = 'none';
+      sendBtn.disabled = false;
+      sendBtn.textContent = originalText;
+      sendBtn.classList.remove('submitting');
+    }, 5000);
   }
 });
 </script>

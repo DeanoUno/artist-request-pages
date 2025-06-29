@@ -14,9 +14,10 @@ exports.handler = async function (event) {
   const body = JSON.parse(event.body || '{}');
   const {
     artistId,
-    method = '',
-    ip = ''
+    method = ''
   } = body;
+
+  const ip = event.headers['x-forwarded-for']?.split(',')[0] || 'Unavailable';
 
   console.log("📥 log-tip triggered for artistId:", artistId);
 
@@ -62,8 +63,19 @@ exports.handler = async function (event) {
 
   const sheets = google.sheets({ version: 'v4', auth: jwtClient });
 
-  const now = new Date().toISOString();
-  const row = [now, method, ip];
+  // ✅ Simplified timestamp
+  const now = new Date();
+  const formattedTime = now.toLocaleString('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/New_York' // Or your local time zone
+  }).replace(',', '');
+
+  const row = [formattedTime, method, ip];
 
   try {
     const result = await sheets.spreadsheets.values.append({
