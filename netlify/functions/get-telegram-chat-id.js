@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
-  const BOT_TOKEN = '8054718848:AAG0WWR72SXnkUq8wY3VYQrwRSIfcYBPz4E';
+  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`;
 
   const res = await fetch(url);
