@@ -4,7 +4,7 @@ const path = require('path');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 
 // This is your artist config Google Sheet ID (static)
-const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
+const CONFIG_SHEET_ID = process.env.ARTIST_CONFIG_SHEET_ID;
 
 async function getArtistConfig(artistId) {
 const keyPath = path.resolve(__dirname, '_secrets/service_account.json');

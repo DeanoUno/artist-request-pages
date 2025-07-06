@@ -309,13 +309,21 @@ let hasTips = false;
 
     // ⬇️ Add log-tip fetch when clicked
     link.addEventListener('click', () => {
+      window.tipResponse = 'Yes';
+      window.tipMethod = method.replace(/^tip/, ''); // e.g., 'Venmo', 'PayPal'
+
       const artistId = window.artist?.artistId || 'unknown';
+      window.tipResponse = 'Yes';
+      window.tipMethod = method.replace(/^tip/, '');  // e.g., 'Venmo', 'PayPal'
+    console.log("Tip Response:", window.tipResponse);
+    console.log("Tip Method:", window.tipMethod);
+
       fetch('/.netlify/functions/log-tip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           artistId,
-          method: method.replace(/^tip/, '')  // strip 'tip' prefix, e.g., 'Venmo'
+          method: window.tipMethod
         })
       }).catch(err => {
         console.error('Tip log failed:', err);
@@ -467,6 +475,68 @@ fetch('https://api.ipify.org?format=json')
     userIP = 'Unavailable';
   });
 
+function showTipModal() {
+  const modal = document.getElementById("tipModal");
+  const buttonsContainer = document.getElementById("tipButtons");
+  buttonsContainer.innerHTML = ""; // Clear previous buttons
+
+  if (!window.artist) return;
+
+  const links = [
+    { name: "Venmo", url: artist.tipVenmo },
+    { name: "PayPal", url: artist.tipPaypal },
+    { name: "Cash App", url: artist.tipCashapp },
+    { name: "Buy Me a Coffee", url: artist.tipCoffee }
+  ];
+
+  links.forEach(link => {
+    if (link.url) {
+      const btn = document.createElement("a");
+      btn.href = link.url;
+      btn.target = "_blank";
+      btn.textContent = `Tip with ${link.name}`;
+      btn.style = "display:block; margin:0.5rem auto; padding:0.5rem 1rem; background:#007bff; color:white; border:none; border-radius:0.5rem; text-decoration:none;";
+
+      // ✅ Tip tracking and modal close
+      btn.addEventListener("click", () => {
+        const artistId = window.artist?.artistId || 'unknown';
+        const method = link.name;
+
+        // Track tip response
+        window.tipResponse = 'Yes';
+        window.tipMethod = method;
+
+        // Log the tip
+        fetch('/.netlify/functions/log-tip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            artistId,
+            method
+          })
+        }).catch(err => {
+          console.error("Tip log failed (modal):", err);
+        });
+
+        // Close modal
+        closeTipModal();
+      });
+
+      buttonsContainer.appendChild(btn);
+    }
+  });
+
+  modal.style.display = "flex";
+}
+
+    function closeTipModal() {
+      window.tipResponse = 'No';
+      window.tipMethod = '';
+      document.getElementById("tipModal").style.display = "none";
+      document.getElementById("songSearch").focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
 
 document.getElementById('requestForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -483,6 +553,9 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
   }
 
   const data = Object.fromEntries(new FormData(form).entries());
+    // Add default tip response fields
+  data.tipResponse = window.tipResponse || 'No';   // 'Yes' if a tip link was clicked
+  data.tipMethod = window.tipMethod || '';         // 'Venmo', 'PayPal', etc.
   data.ip = userIP;
   data.pushoverToken = artist.pushoverToken;
   data.pushoverUserKey = artist.pushoverUserKey;
@@ -513,6 +586,7 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
     }
 
     msg.style.display = 'block';
+    setTimeout(showTipModal, 500);
     setTimeout(() => {
       msg.style.display = 'none';
       sendBtn.disabled = false;
@@ -543,5 +617,15 @@ document.getElementById('requestForm').addEventListener('submit', async e => {
   </a>
 </p>
   </footer>
+    <!-- Tip Prompt Modal -->
+    <div id="tipModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+      <div style="background:white; padding:2rem; border-radius:1rem; text-align:center; max-width:400px; margin:auto; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+        <h2 style="margin-top:0;">Would you like to leave a tip?</h2>
+        <p>It’s not required — but always appreciated!</p>
+        <div id="tipButtons" style="margin-top:1rem;"></div>
+        <button onclick="closeTipModal()" style="margin-top:1rem; padding:0.5rem 1rem;">No Thanks</button>
+      </div>
+    </div>
+
 </body>
 </html>

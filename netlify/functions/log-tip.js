@@ -1,3 +1,5 @@
+// netlify/functions/log-tip.js
+
 const { google } = require('googleapis');
 const path = require('path');
 const fs = require('fs');
@@ -12,11 +14,7 @@ exports.handler = async function (event) {
   }
 
   const body = JSON.parse(event.body || '{}');
-  const {
-    artistId,
-    method = ''
-  } = body;
-
+  const { artistId, method = '' } = body;
   const ip = event.headers['x-forwarded-for']?.split(',')[0] || 'Unavailable';
 
   console.log("📥 log-tip triggered for artistId:", artistId);
@@ -41,7 +39,6 @@ exports.handler = async function (event) {
       pushoverUserKey,
       telegramChatId
     } = artistConfig);
-
   } catch (err) {
     console.error("❌ Failed to load artist config:", err.message);
     return {
@@ -50,7 +47,6 @@ exports.handler = async function (event) {
     };
   }
 
-  // Load service account credentials
   const keyPath = path.resolve(__dirname, '_secrets', 'service_account.json');
   const keyFile = fs.readFileSync(keyPath, 'utf8');
   const key = JSON.parse(keyFile);
@@ -63,22 +59,12 @@ exports.handler = async function (event) {
 
   const sheets = google.sheets({ version: 'v4', auth: jwtClient });
 
-  // ✅ Simplified timestamp
   const now = new Date();
-  const formattedTime = now.toLocaleString('en-CA', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'America/New_York' // Or your local time zone
-  }).replace(',', '');
-
+  const formattedTime = now.toISOString(); // ← Fixed here
   const row = [formattedTime, method, ip];
 
   try {
-    const result = await sheets.spreadsheets.values.append({
+    await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
       range: 'Tip Log!A1',
       valueInputOption: 'USER_ENTERED',
@@ -87,13 +73,49 @@ exports.handler = async function (event) {
       },
     });
 
-    console.log("💰 Tip log append success:", result.data);
+    // ✅ Try to update most recent request if within 10s from same IP
+    async function maybeMarkRecentRequestAsTipped() {
+      try {
+        const res = await sheets.spreadsheets.values.get({
+          spreadsheetId: sheetId,
+          range: 'Requests!A2:G1000'
+        });
 
-    // ✅ Pushover notification
+        const rows = res.data.values || [];
+
+        for (let i = rows.length - 1; i >= 0; i--) {
+          const [timestamp, , , , rowIP, tipResponse, tipMethod] = rows[i];
+          if (rowIP !== ip) continue;
+
+          const requestTime = new Date(timestamp);
+          const diffSeconds = (now - requestTime) / 1000;
+
+          if (diffSeconds <= 10 && (!tipResponse || tipResponse.toLowerCase() !== 'yes')) {
+            const rowIndex = i + 2;
+            await sheets.spreadsheets.values.update({
+              spreadsheetId: sheetId,
+              range: `Requests!F${rowIndex}:G${rowIndex}`,
+              valueInputOption: 'USER_ENTERED',
+              requestBody: {
+                values: [['Yes', method]]
+              }
+            });
+            console.log(`🔗 Linked tip to request at row ${rowIndex}`);
+            break;
+          }
+        }
+      } catch (err) {
+        console.error("⚠️ Failed to link tip to recent request:", err.message);
+      }
+    }
+
+    await maybeMarkRecentRequestAsTipped();
+
+    // Pushover
     if (pushoverToken && pushoverUserKey && method) {
       try {
         const message = `Someone clicked the ${method} tip button.`;
-        const pushResponse = await fetch('https://api.pushover.net/1/messages.json', {
+        await fetch('https://api.pushover.net/1/messages.json', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({
@@ -104,22 +126,19 @@ exports.handler = async function (event) {
             priority: '0'
           })
         });
-
-        const pushText = await pushResponse.text();
-        console.log("📲 Pushover response:", pushText);
       } catch (pushErr) {
-        console.error("🚫 Failed to send Pushover notification:", pushErr.message);
+        console.error("🚫 Pushover error:", pushErr.message);
       }
     }
 
-    // ✅ Telegram notification
+    // Telegram
     const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
     if (telegramBotToken && telegramChatId && method) {
       try {
         const message = `💸 Someone clicked the ${method} tip button.`;
         const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
 
-        const tgResponse = await fetch(telegramUrl, {
+        await fetch(telegramUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -127,11 +146,8 @@ exports.handler = async function (event) {
             text: message
           })
         });
-
-        const tgText = await tgResponse.text();
-        console.log("📬 Telegram response:", tgText);
       } catch (tgErr) {
-        console.error("🚫 Failed to send Telegram notification:", tgErr.message);
+        console.error("🚫 Telegram error:", tgErr.message);
       }
     }
 
@@ -141,7 +157,7 @@ exports.handler = async function (event) {
     };
 
   } catch (error) {
-    console.error("❌ Error logging tip:", error.message);
+    console.error("❌ log-tip failure:", error.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to log tip' }),

@@ -3,8 +3,8 @@ const { google } = require('googleapis');
 const creds = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_CONTENT || '{}');
 
 // IDs and settings
-const CONFIG_SHEET_ID = '14csqN2-D55i4LOyKOxfx1AkmKyLbLFrOqlXfSmJJm-c';
-const TEMPLATE_SHEET_ID = '1LYcDJri2VnCY1_0l9WucYSf82JTow_rm__Jd8hJlrcQ';
+const CONFIG_SHEET_ID = process.env.ARTIST_CONFIG_SHEET_ID;
+const TEMPLATE_SHEET_ID = process.env.TEMPLATE_SHEET_ID;
 const CONFIG_TAB_NAME = 'config';
 
 exports.handler = async function(event) {
